@@ -1,0 +1,506 @@
+[
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "qualidade-seguranca",
+    "nivel_esperado": 1,
+    "descricao": "• Participa da revisão de PRs buscando entender o que foi realizado\n• Escreve testes unitários com ajuda de outras pessoas desenvolvedoras\n• Entende a importância e aplica boas práticas e padrões de desenvolvimento, buscando ajuda quando necessário\n• Tem um entendimento macro sobre a importância da segurança e segue os guidelines do GB\n• Contribui na construção da documentação dos produtos da sua equipe"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "qualidade-seguranca",
+    "nivel_esperado": 2,
+    "descricao": "• Revisa buscando qualidade do código, critérios de aceite, lógica de negócio, cobertura de testes e alinhamento com arquitetura\n• Entende a pirâmide de testes e escreve testes unitários assim como outros testes de acordo com a pirâmide\n• Aplica boas práticas e padrões nas tarefas\n• Encontra oportunidades de evolução em segurança nos produtos da sua equipe, buscando ajuda de focais de segurança quando necessário\n• Apoia outras pessoas desenvolvedoras na construção de testes e boas práticas"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "qualidade-seguranca",
+    "nivel_esperado": 3,
+    "descricao": "• Provê sugestões significativas nos PRs e é pró-ativo na revisão dos PRs da equipe\n• Entende a abordagem de testes da equipe e usa métricas de qualidade para identificar melhorias\n• Aplica as boas práticas e padrões de desenvolvimento seguidos pela equipe\n• Utiliza de fatos e dados para identificar melhorias e mapear dívidas técnicas\n• Ajuda outras pessoas desenvolvedoras a aprender sobre melhores práticas e padrões\n• Procura ativamente por vulnerabilidades de segurança no código e na revisão de PRs, buscando ajuda de focais de segurança quando necessário"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "qualidade-seguranca",
+    "nivel_esperado": 4,
+    "descricao": "• Encoraja a cultura da qualidade nos code reviews da sua equipe\n• Fomenta a equipe na construção de guidelines de boas práticas de desenvolvimento\n• Influencia a abordagem de teste da equipe como um todo, buscando enriquecer cada vez mais o escopo testado e automatizado em todos os sistemas\n• Orienta a equipe em seguir padrões e boas práticas. Busca referências para aplicar as melhores práticas e melhorar padrões de desenvolvimento dentro da equipe\n• Promove uma abordagem de segurança em primeiro lugar com a equipe, buscando ajuda com focais de segurança quando necessário"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "qualidade-seguranca",
+    "nivel_esperado": 5,
+    "descricao": "• Encoraja a cultura da qualidade no code review em sua equipe e equipes pares\n• Compreende e define a abordagem de teste de várias equipes e usa métricas de qualidade para identificar melhorias\n• Promove o uso e execução de boas práticas em sua equipe e equipes pares através de fatos e dados\n• Influencia sua equipe ou atua ativamente com o time de SI e outras equipes para aplicar estratégia de segurança na sua equipe e equipes pares\n• Investiga e traz novas ferramentas e tecnologias para dentro da sua equipe e equipes pares"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "qualidade-seguranca",
+    "nivel_esperado": 6,
+    "descricao": "• Impulsiona e influencia a cultura de revisão de código e qualidade na VS\n• Impulsiona e influencia a estratégia de teste da VS e usa métricas de qualidade para identificar melhorias. Trabalha na sua VS para recomendar soluções e ferramentas\n• Busca melhores práticas e padrões de desenvolvimento dentro da VS\n• Promove uma mentalidade de segurança em primeiro lugar na VS\n• É referência técnica para seu chapter de atuação"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "monitoramento-incidentes",
+    "nivel_esperado": 1,
+    "descricao": "• Aprende a identificar uma falha e como prioriza-la\n• Entende a importância de monitorar a saúde da aplicação e cria novas monitorias com ajuda de outras pessoas desenvolvedoras\n• Conhece os principais indicadores e ferramentas que a sua equipe usa para acompanhar a saúde do produto\n• Auxilia a equipe na construção de eventuais post-mortem\n• Acompanha as monitorias e resolve falhas com ajuda de outras pessoas desenvolvedoras"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "monitoramento-incidentes",
+    "nivel_esperado": 2,
+    "descricao": "• Assume a responsabilidade de falhas que pertencem ao domínio da sua equipe, pedindo ajuda na resolução quando necessário\n• Domina os dados operacionais referentes ao domínio da sua equipe.\n• Cria novas monitorias para melhorar a saúde do produto\n• Conhece os principais indicadores de negócio que o seu time acompanha para medir impacto do seu produto\n• Toma a iniciativa na construção de eventuais post-mortem."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "monitoramento-incidentes",
+    "nivel_esperado": 3,
+    "descricao": "• Assume a responsabilidade de falhas que pertencem ao domínio da sua equipe\n• Ajusta o monitoramento em sua equipe e apoia outras pessoas desenvolvedoras nesse tema\n• Utiliza seu domínio nos dados como uma base para sugerir melhorias de estabilidade e desempenho\n• Toma a iniciativa e incentiva equipe na construção de eventuais post-mortem."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "monitoramento-incidentes",
+    "nivel_esperado": 4,
+    "descricao": "• Lidera e assume a responsabilidade na resolução de falhas\n• Fornece assistência a outras pessoas desenvolvedoras para a resolução de falhas\n• Impulsiona o trabalho de monitoramento em sua equipe\n• Toma a iniciativa e incentiva equipe na construção de eventuais post-mortem"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "monitoramento-incidentes",
+    "nivel_esperado": 5,
+    "descricao": "• Assume a responsabilidade e lidera resolução de falhas no domínio da sua equipe e equipe pares\n• Fornece assistência a outras pessoas desenvolvedoras na resolução de falhas\n• Promove uma cultura de monitoramento em sua equipe e equipe pares\n• Incentiva a equipe e usa os dados operacionais para melhorar a estabilidade e o desempenho dos domínios da sua equipe e equipes pares\n• Auxilia a equipe e equipes pares na definição de modelos de post-mortem e matriz de priorização de falhas"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "monitoramento-incidentes",
+    "nivel_esperado": 6,
+    "descricao": "• Quando necessário, apoia na resposta a incidentes no nível da VS\n• Busca novas e revisa atuais ferramentas de monitoramento dentro da VS\n• Impulsiona e influencia a cultura de monitoramento na VS\n• Quando necessário, ajuda equipes da VS a usar dados operacionais para melhorar a estabilidade e o desempenho de seus domínios\n• Compartilha e influencia a VS nas melhores práticas para os post-mortem e matriz de priorização de falhas\n• Compartilha melhores práticas e ferramentas no seu chapter de atuação"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "arquitetura",
+    "nivel_esperado": 1,
+    "descricao": "• Participa das discussões técnicas da equipe, propondo melhorias com ajuda de outras pessoas desenvolvedoras\n• Entende e aplica as boas práticas de arquitetura, buscando ajuda quando necessário\n• É capaz de ganhar contexto dentro do domínio da equipe com ajuda de outras pessoas desenvolvedoras."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "arquitetura",
+    "nivel_esperado": 2,
+    "descricao": "• Participa das discussões técnicas da equipe, propondo melhorias com ajuda de outras pessoas desenvolvedoras\n• Compreende parte do domínio da equipe suficientemente para trabalhar de forma produtiva\n• Desenvolve de acordo com a arquitetura geral do produto."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "arquitetura",
+    "nivel_esperado": 3,
+    "descricao": "• Compreende o domínio de sua equipe em alto nível e reúne contexto suficiente para trabalhar de forma autônoma dentro dele\n• Projeta soluções que estão alinhadas com a arquitetura geral do produto\n• Auxilia outras pessoas desenvolvedoras no entendimento e desenho de melhorias na arquitetura atual da equipe."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "arquitetura",
+    "nivel_esperado": 4,
+    "descricao": "• Tem experiência no domínio de sua equipe, entende domínios adjacentes e como eles afetam sua equipe\n• Arquiteta serviços e sistemas usando padrões de design. Antecipa casos de uso futuros e toma decisões de design que minimizam o custo de futuras mudanças\n• Orienta a equipe em seguir padrões de arquitetura e incentiva a boa gestão dos custos\n• Busca referências para aplicar as melhores práticas e melhorar padrões dentro da equipe."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "arquitetura",
+    "nivel_esperado": 5,
+    "descricao": "• Tem experiência em um conjunto de domínios de sua equipe e equipe pares, incluindo a amplitude de produtos, como eles interagem e fluxos de dados entre sistemas de várias equipes\n• Atua em várias equipes para promover a cultura de arquitetura que permite desenvolvimento iterativo, autônomo e escalonado\n• Trabalha em conjunto com o time de Arquitetura de Soluções para propor definições e melhorias nos padrões do GB."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "arquitetura",
+    "nivel_esperado": 6,
+    "descricao": "• Tem experiência com a arquitetura da VS, incluindo os domínios, seus contextos limitados e como eles interagem uns com os outros\n• Impulsiona e influencia a VS promovendo uma cultura que permite o desenvolvimento iterativo, autônomo e escalonado.\n• Orienta as equipes da VS e antecipa casos de uso futuros e ajuda as equipes a tomar decisões de design que minimizam o custo de mudanças futuras."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "entrega",
+    "nivel_esperado": 1,
+    "descricao": "• Entende e realiza entrega incremental com ajuda de outras pessoas desenvolvedoras, de acordo com as priorizações definidas na equipe\n• Conta com a ajuda de outras pessoas desenvolvedoras para resolver bloqueios\n• Tem conversas diárias com sua equipe sobre o progresso do seu trabalho."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "entrega",
+    "nivel_esperado": 2,
+    "descricao": "• Garante continuos integration e entrega incremental de valor\n• Compromete-se com uma quantidade de trabalho realista.\n• Escala quaisquer bloqueadores, atrasos e aumento de custos para seus líderes e pares."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "entrega",
+    "nivel_esperado": 3,
+    "descricao": "• Impulsiona e influencia sua equipe para que a quebra do seu trabalho entregue valor incremental e para que as partes envolvidas estejam alinhadas\n• Atua nos compromissos de entrega entre sua equipe e equipes pares visando garantir progresso e alinhamento\n• Comunica e atua em bloqueios, atrasos e prevenção do aumento de custos entre as equipes, antes que eles precisem de escalonamento\n• Atua quando necessário na entrega de projetos de maior complexidade e criticidade em equipes pares (além da atuação na sua equipe)\n• Influencia equipes pares para garantir compromissos, quebra de trabalho de forma apropriada, roteiro de entrega e alinhamento com partes envolvidas."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "entrega",
+    "nivel_esperado": 4,
+    "descricao": "• Revisa épicos e projetos com atenção visando garantir o tamanho apropriado para entrega incremental de valor e que estão bem entendidos pela equipe\n• Comunica e atua em bloqueios, atrasos e prevenção do aumento de custos nos projetos de sua equipe, antes que eles precisem de escalonamento."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "entrega",
+    "nivel_esperado": 5,
+    "descricao": "• Impulsiona e influencia sua equipe para que a quebra do seu trabalho entregue valor incremental e para que as partes envolvidas estejam alinhadas\n• Atua nos compromissos de entrega entre sua equipe e equipes pares visando garantir progresso e alinhamento\n• Comunica e atua em bloqueios, atrasos e prevenção do aumento de custos entre as equipes, antes que eles precisem de escalonamento\n• Atua quando necessário na entrega de projetos de maior complexidade e criticidade em equipes pares (além da atuação na sua equipe)\n• Influencia equipes pares para garantir compromissos, quebra de trabalho de forma apropriada, roteiro de entrega e alinhamento com partes envolvidas."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "entrega",
+    "nivel_esperado": 6,
+    "descricao": "• Impulsiona e influencia as equipes da VS visando garantir o alinhamento de expectativas entre as equipes e as partes interessadas externas\n• Atua quando necessário na entrega de projetos de maior complexidade e criticidade da VS\n• Influência a VS para garantir compromissos, quebra de trabalho de forma apropriada, roteiro de entrega e alinhamento com partes envolvidas."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "feedback",
+    "nivel_esperado": 1,
+    "descricao": "• Se preocupa em dar feedbacks construtivos e em reconhecer comportamentos e entregas da sua equipe\n• Recebe com escuta ativa feedbacks construtivos e se preocupa em apresentar melhorias em seus aspectos técnicos e não técnicos."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "feedback",
+    "nivel_esperado": 2,
+    "descricao": "• Da feedbacks construtivos e reconhece comportamentos e entregas da sua equipe\n• Busca ativamente feedbacks de seus pares e líderes e apresenta melhorias em seus aspectos técnicos e não técnicos."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "feedback",
+    "nivel_esperado": 3,
+    "descricao": "• Da feedbacks construtivos e reconhece comportamentos e entregas de sua equipe e líderes\n• Incentiva outras pessoas desenvolvedoras a buscar e dar feedbacks"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "feedback",
+    "nivel_esperado": 4,
+    "descricao": "• Impulsiona uma cultura de feedback construtivo dentro de sua equipe\n• Da feedbacks construtivos e reconhece comportamentos e entregas de sua equipe, líderes e equipes pares\n• Busca ativamente feedbacks com todos que tem interação e apresenta melhorias em seus aspectos técnicos e não técnicos."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "feedback",
+    "nivel_esperado": 5,
+    "descricao": "• Impulsiona uma cultura de feedback construtivo dentro de sua equipe e equipe pares\n• Da feedbacks construtivos e reconhece comportamentos e entregas com todos que tem interação\n• Busca ativamente feedbacks com todos que tem interação e apresenta melhorias em seus aspectos técnicos e não técnicos\n• Identifica melhorias no conhecimento técnico da equipe e influencia na sua evolução."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "feedback",
+    "nivel_esperado": 6,
+    "descricao": "• Impulsiona uma cultura de feedback construtivo dentro da VS\n• Identifica melhorias no conhecimento técnico das pessoas da VS e influencia na sua evolução."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "colaboracao",
+    "nivel_esperado": 1,
+    "descricao": "• Se preocupa em realizar uma comunicação efetiva com sua equipe\n• Compartilha conhecimento com a equipe sempre que necessário\n• Busca colaborar com a equipe sempre que possível\n• Trabalha para construir relacionamentos sólidos com seus colegas\n• Compartilha abertamente suas opiniões de maneira respeitosa."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "colaboracao",
+    "nivel_esperado": 2,
+    "descricao": "• Comunica-se de forma eficaz dentro do time identificando o público\n• Ouve ativamente os outros e garante que sejam compreendidos\n• Compreende seu domínio de trabalho, compartilha seu conhecimento sempre que necessário com seus colegas e contribui com a documentação\n• Quando solicitado, ajuda seus colegas de equipe a superar obstáculos, resolver bloqueios e concluir tarefas. Dá ou compartilha o crédito quando devido\n• Incentiva seus colegas de equipe a compartilhar abertamente suas opiniões e contribuir para as discussões de maneira respeitosa."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "colaboracao",
+    "nivel_esperado": 3,
+    "descricao": "• Comunica-se de forma eficaz, clara e concisa por escrito e verbalmente, assuntos técnicos e não técnicos de forma orientada para o público\n• Compreende o domínio de sua equipe, compartilha seu conhecimento com seus colegas e contribui com a documentação. É atento a oportunidades de compartilhar conhecimento e incentiva outras pessoas a fazerem o mesmo\n• Ajuda seus colegas de equipe a superar obstáculos, resolver bloqueadores e concluir tarefas de trabalho de forma proativa\n• Trabalha para construir relacionamentos sólidos com seus colegas de equipe, lideres, bem como com as partes interessadas\n• Contribui e incentiva uma cultura dentro de sua equipe onde as pessoas são incentivadas a compartilhar suas opiniões e contribuir para as discussões de maneira respeitosa."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "colaboracao",
+    "nivel_esperado": 4,
+    "descricao": "• Contribui e incentiva uma cultura de comunicação clara, concisa, eficaz e orientada para o público em sua equipe\n• Contribui e incentiva uma cultura de documentação e compartilhamento de conhecimento dentro de sua equipe e com as partes interessadas\n• Ajuda consistentemente seus colegas de equipe a superar obstáculos, resolver bloqueadores e concluir tarefas de trabalho\n• Trabalha para melhorar e construir relacionamentos sólidos com seus colegas de equipe, lideres, negócio e outras pessoas desenvolvedoras em toda a organização. Aproveita os relacionamentos para melhor planejar e posicionar sua equipe"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "colaboracao",
+    "nivel_esperado": 5,
+    "descricao": "• Contribui e incentiva uma cultura de comunicação clara, concisa, eficaz e orientada para o público em sua equipe e equipes pares, incentivando que os colegas de equipe ouçam ativamente os outros e sejam compreendidos. Demonstra ativamente esses comportamentos\n• Contribui e incentiva uma cultura de documentação e compartilhamento de conhecimento em sua equipe, equipe pares e seus respectivos stakeholders; Demonstra ativamente esses comportamentos\n• Trabalha consistentemente em sua equipe e equipe pares para ajudá-los a resolver bloqueios e concluir tarefas de trabalho\n• Trabalha para melhorar e construir relacionamentos sólidos com pessoas desenvolvedoras, lideres da VS e Chapters relacionados, bem como partes interessadas\n• Contribui e incentiva uma cultura em sua equipe e equipes pares, onde as pessoas são incentivadas a compartilhar suas opiniões e contribuir para as discussões de maneira respeitosa.\n• Trabalha em sua equipe e equipes pares para compartilhar conhecimento, internamente ou externamente, promovendo o GB.Tech"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "colaboracao",
+    "nivel_esperado": 6,
+    "descricao": "• Comunica eficazmente dentro da VS. Contribui e incentiva uma cultura de comunicação clara, concisa e eficaz orientada para o público em toda a Value Stream\n• Contribui e incentiva uma cultura de documentos e partilha de conhecimentos na VS, além de demonstrar ativamente esses comportamentos\n• Trabalha constantemente na VS para permitir que as equipes apoiem umas as outras\n• Trabalha para melhorar e construir relacionamentos sólidos em toda VS e Chapter de atuação\n• Contribui e incentiva toda a VS a criar uma cultura onde as pessoas são encorajadas a compartilhar suas opiniões e contribuir para as discussões de maneira respeitosa\n• Trabalha em sua VS para compartilhar conhecimento, internamente ou externamente, promovendo o GB.Tech."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "estrategia",
+    "nivel_esperado": 1,
+    "descricao": "• Compreende e participa dos processos da equipe\n• Possui um conhecimento básico da estratégia do time (entende a missão e indicadores principais)\n• Possui um conhecimento de como o time contribui para a estratégia macro do negócio\n• Conhece o usuário/cliente impactado pelos produtos da equipe e tem conhecimentos básicos da sua jornada"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "estrategia",
+    "nivel_esperado": 2,
+    "descricao": "• Pensa sobre as práticas e processos da equipe e discute melhorias\n• Conhecendo a estratégia do time e da organização, pensa em sugestões de melhorias ou evoluções no produto que contribuam para os objetivos da equipe\n• Acompanha os resultados da equipe e da organização\n• Conhece e busca se informar de feedbacks do usuário/cliente impactado pelos produtos do seu time e tem profundidade na jornada e dores enfrentados por ele"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "estrategia",
+    "nivel_esperado": 3,
+    "descricao": "• Incentiva outras pessoas desenvolvedoras na discussão de melhorias de processos e práticas da equipe\n• Tem um conhecimento profundo do domínio de sua equipe e como ela contribui para a estratégia geral de negócios e auxilia outras pessoas desenvolvedoras a compreendê-la também\n• Questiona se as iniciativas da equipe vão contribuir para atingir os resultados esperados de negócio\n• Tem um conhecimento básico dos domínios de negócios das equipes pares\n• Conhece, se informa e sugere melhorias com base nos feedbacks e no impacto que a equipe traz na jornada dos usuários/clientes."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "estrategia",
+    "nivel_esperado": 4,
+    "descricao": "• Contribui e incentiva uma cultura de discussão de melhorias nas práticas e processo da sua equipe\n• Influencia o time no questionamento das iniciativas do time e como elas contribuem para atingir os resultados esperados de negócio\n• Entende a estratégia das equipes pares e consegue pensar nos pontos de intersecção com seu time\n• Influencia outras pessoas desenvolvedoras a se aproximarem do usuário/cliente impactado pelos produtos da sua equipe"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "estrategia",
+    "nivel_esperado": 5,
+    "descricao": "• Contribui e incentiva uma cultura de discussão de melhorias nas práticas e processo da sua equipe e equipes pares\n• Influencia a equipe e equipes pares no questionamento das iniciativas e como elas contribuem para atingir os resultados esperados de negócio\n• Conhece com profundidade a estratégia da sua equipe e equipes pares e como elas contribuem para a estratégia geral da VS\n• Influencia sua equipe e equipes pares a se aproximarem do usuário/cliente"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "estrategia",
+    "nivel_esperado": 6,
+    "descricao": "• Contribui e incentiva uma cultura de discussão de melhorias nas práticas e processos da VS\n• Influencia a VS no questionamento das suas iniciativas e como elas contribuem para atingir os resultados esperados de negócio\n• Tem uma compreensão dos domínios das equipes da VS e como elas contribuem para uma estratégia global de negócios.\n• Conhece os pontos de intersecção com outras VS's e como elas podem impactar na sua estratégia da sua VS.\n• Influencia sua VS a se aproximar do usuário/cliente"
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "aplicacao-conhecimento",
+    "nivel_esperado": 1,
+    "descricao": "• Uso limitado e/ou aplicação de princípios, teorias e conceitos básicos.\n• Conhecimento limitado das práticas e normas."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "aplicacao-conhecimento",
+    "nivel_esperado": 2,
+    "descricao": "• Uso frequente e conhecimento geral das práticas, técnicas e padrões de mercado.\n• Aplicação geral de conceitos e princípios."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "aplicacao-conhecimento",
+    "nivel_esperado": 3,
+    "descricao": "• Compreensão completa e aplicação de princípios, conceitos, práticas e padrões.\n• Pleno conhecimento das práticas de mercado."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "aplicacao-conhecimento",
+    "nivel_esperado": 4,
+    "descricao": "• Contribui para o desenvolvimento de novas aplicações, técnicas e padrões.\n• É considerado referência na sua área dentro da organização.\n• Responde a perguntas técnicas sobre produtos e serviços."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "aplicacao-conhecimento",
+    "nivel_esperado": 5,
+    "descricao": "• Aplica extensa expertise na sua área e tem pleno conhecimento de outras disciplinas relacionadas.\n• Responde a perguntas técnicas complexas sobre produtos e serviços.\n• Identifica, analisa e desenvolve novas oportunidades de negócios."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "aplicacao-conhecimento",
+    "nivel_esperado": 6,
+    "descricao": "• Aplica princípios técnicos avançados, teorias e conceitos. Contribui para o desenvolvimento de novos princípios e conceitos. Referência para a organização no tema em que atua. Identifica, analisa e desenvolve novas oportunidades de negócios."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "resolucao-problemas-tecnicos",
+    "nivel_esperado": 1,
+    "descricao": "• Soluciona problemas rotineiros, de escopo e complexidade limitados, seguindo procedimentos estabelecidos."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "resolucao-problemas-tecnicos",
+    "nivel_esperado": 2,
+    "descricao": "• Desenvolve soluções para uma variedade de problemas de alcance e complexidade moderados.\n• Consulta políticas para obter orientação."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "resolucao-problemas-tecnicos",
+    "nivel_esperado": 3,
+    "descricao": "• Desenvolve soluções para uma variedade de problemas complexos.\n• Segue as políticas estabelecidas e possui histórico de soluções para a maioria das situações."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "resolucao-problemas-tecnicos",
+    "nivel_esperado": 4,
+    "descricao": "• Desenvolve soluções para problemas complexos, que exigem o uso regular de criatividade e inovação.\n• Contribui com soluções que sejam consistentes com os objetivos da área.\n• Expõe sua perspectiva técnica em discussões e contribui na tomada de decisão."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "resolucao-problemas-tecnicos",
+    "nivel_esperado": 5,
+    "descricao": "• Desenvolve soluções para problemas complexos, que exigem o uso regular de criatividade e inovação.\n• Garante que as soluções sejam consistentes com os objetivos da vice-presidência.\n• Expõe sua perspectiva técnica em discussões e influencia a tomada de decisão."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "resolucao-problemas-tecnicos",
+    "nivel_esperado": 6,
+    "descricao": "• Trabalha em problemas técnicos incomuns, complexos e fornece soluções altamente inovadoras e criativas. Garante que as soluções sejam consistentes com os objetivos da organização. Expõe sua perspectiva técnica em discussões e influencia a tomada de decisão."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "liberdade-atuacao-tecnica",
+    "nivel_esperado": 1,
+    "descricao": "• O trabalho é realizado com acesso à supervisão.\n• Segue instruções específicas e detalhadas."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "liberdade-atuacao-tecnica",
+    "nivel_esperado": 2,
+    "descricao": "• O trabalho é realizado sob um direcionamento específico.\n• O resultado do trabalho é avaliado para garantir a consistência e adequação aos objetivos."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "liberdade-atuacao-tecnica",
+    "nivel_esperado": 3,
+    "descricao": "• O trabalho é realizado sob um direcionamento amplo.\n• Participa na determinação dos objetivos do trabalho.\n• Planeja e organiza suas próprias atividades para o atingimento dos objetivos."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "liberdade-atuacao-tecnica",
+    "nivel_esperado": 4,
+    "descricao": "• O trabalho é realizado com pouco direcionamento.\n• Exerce considerável liberdade na determinação de abordagens para o trabalho."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "liberdade-atuacao-tecnica",
+    "nivel_esperado": 5,
+    "descricao": "• O trabalho é realizado com visão dos objetivos gerais a serem alcançados.\n• Possui autonomia para definir os objetivos técnicos da atribuição.\n• Os resultados do trabalho são avaliados a partir de uma perspectiva de médio a longo prazo."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "liberdade-atuacao-tecnica",
+    "nivel_esperado": 6,
+    "descricao": "• O trabalho é realizado com visão dos objetivos de longo prazo a serem alcançados. Determina e segue os cursos de ação necessários para obter os resultados desejados podendo envolver outras áreas/disciplinas da organização. Os resultados do trabalho são avaliados a partir de uma perspectiva de longo prazo."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "impacto",
+    "nivel_esperado": 1,
+    "descricao": "• As contribuições são geralmente limitadas a atividades relacionadas a tarefas.\n• Os erros normalmente têm pouco impacto na organização."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "impacto",
+    "nivel_esperado": 2,
+    "descricao": "• Contribui para a conclusão de projetos organizacionais e metas.\n• Os erros geram impacto moderado de recursos para corrigir, principalmente em sua área de atuação."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "impacto",
+    "nivel_esperado": 3,
+    "descricao": "• Exerce alguma influência sobre os objetivos gerais e metas de longo alcance da organização.\n• Erros ou falha em atingir objetivos geram grande impacto de recursos para corrigir, principalmente em sua área de atuação."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "impacto",
+    "nivel_esperado": 4,
+    "descricao": "• Os efeitos das decisões são duradouros e pode influenciar o curso futuro da organização.\n• Erros ou recomendações erradas normalmente resultam em falha na obtenção de resultados gerando impacto para fora da área de atuação."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "impacto",
+    "nivel_esperado": 5,
+    "descricao": "• Regularmente chamado para trabalhar em um papel de liderança de projeto.\n• Decisões ou recomendações erradas normalmente resultam na falha no alcance dos principais objetivos da organização."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "impacto",
+    "nivel_esperado": 6,
+    "descricao": "• Lidera o planejamento e implementação de grandes projetos/programas. Decisões ou recomendações erradas normalmente resultarão em falha na obtenção de objetivos críticos da organização, e o impacto pode extrapolar para fora da empresa. Contribui para o planejamento e alcance dos objetivos estratégicos da área."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-1",
+    "competencia_slug": "relacionamentos",
+    "nivel_esperado": 1,
+    "descricao": "• Os contatos são principalmente internos à organização.\n• Contatos externos são estruturados e majoritariamente para troca de informações, orientações específicas e relação com fornecedores."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-2",
+    "competencia_slug": "relacionamentos",
+    "nivel_esperado": 2,
+    "descricao": "• Frequentes contatos internos e externos à organização."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "developer-3",
+    "competencia_slug": "relacionamentos",
+    "nivel_esperado": 3,
+    "descricao": "• Contatos frequentes com clientes internos e externos à organização.\n• Representa a organização no fornecimento de soluções para problemas técnicos associados a projetos específicos.\n• Apoia os níveis iniciais com orientações."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-1",
+    "competencia_slug": "relacionamentos",
+    "nivel_esperado": 4,
+    "descricao": "• Representa a organização como o contato técnico em projetos e/ou iniciativas de longo prazo.\n• Interage com clientes internos em questões técnicas, muitas vezes exigindo a coordenação entre áreas ou organizações."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-2",
+    "competencia_slug": "relacionamentos",
+    "nivel_esperado": 5,
+    "descricao": "• Representa a organização como o contato técnico principal em contratos e projetos.\n• Interage com nível sênior (interno ou externo) em questões técnicas exigindo a coordenação entre áreas ou organizações.\n• Tem influência junto ao primeiro nível executivo dentro do escopo/área em que atua."
+  },
+  {
+    "area_key": "engenharia-software",
+    "nivel_key": "dev-specialist-3",
+    "competencia_slug": "relacionamentos",
+    "nivel_esperado": 6,
+    "descricao": "• Atua como porta-voz da organização em projetos e/ou programas. Interage com nível executivo (interno ou externo) em questões técnicas significativas, muitas vezes exigindo a coordenação entre áreas ou organizações. Tem influência nos níveis executivos da organização. Responsável por ser o ponto focal da organização na relação com órgãos, instâncias técnicas e grupos externos."
+  }
+]

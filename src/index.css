@@ -1,0 +1,194 @@
+@import 'tailwindcss';
+
+/* Dark mode driven by a `.dark` class on <html> (toggled in the theme store). */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/*
+ * Design system GB PDI — direção "Clareza" (cores do Grupo Boticário).
+ *
+ * - Primária (âncora): roxo Boticário. Mapeado sobre a rampa `indigo`, que já
+ *   era a cor de destaque usada de forma consistente no app, então `indigo-*`
+ *   em qualquer lugar passa a ser o roxo da marca sem reescrever as telas.
+ * - Destaque: magenta, exposto como `accent-*` e usado em pontos-chave
+ *   (marca, badges) ao lado do roxo. `emerald` segue como sucesso e `rose`
+ *   como perigo (semânticos).
+ * - Tipografia: Manrope em toda a interface.
+ * - Raios discretos e ícones de traço fino (1.75), para um visual mais enxuto.
+ *
+ * Valores aproximados da identidade do Boticário — confirmar no manual de marca.
+ */
+@theme {
+  --font-sans:
+    'Manrope', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+
+  /* Roxo Boticário (primária) — substitui a rampa indigo */
+  --color-indigo-50: #f5f0fa;
+  --color-indigo-100: #ebe0f4;
+  --color-indigo-200: #d7c0ea;
+  --color-indigo-300: #bd98db;
+  --color-indigo-400: #9d6ac8;
+  --color-indigo-500: #7f45b0;
+  --color-indigo-600: #5b2a86;
+  --color-indigo-700: #4a216e;
+  --color-indigo-800: #3b1c57;
+  --color-indigo-900: #301748;
+  --color-indigo-950: #1f0e30;
+
+  /* Magenta Boticário (destaque) */
+  --color-accent-50: #fdeaf3;
+  --color-accent-100: #fbd3e3;
+  --color-accent-200: #f7aaca;
+  --color-accent-300: #f175a8;
+  --color-accent-400: #e63f87;
+  --color-accent-500: #d6006e;
+  --color-accent-600: #bb0160;
+  --color-accent-700: #99094f;
+  --color-accent-800: #720c3d;
+  --color-accent-900: #4f0a2b;
+  --color-accent-950: #2e0418;
+
+  /* Cantos mais discretos */
+  --radius-xl: 0.625rem;
+  --radius-2xl: 0.75rem;
+  --radius-3xl: 1rem;
+}
+
+:root {
+  color-scheme: light;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Ícones Lucide: traço mais fino, coerente com a direção "Clareza".
+   O stroke-width do CSS sobrepõe o atributo presentacional do SVG. */
+.lucide {
+  stroke-width: 1.75px;
+}
+
+/* Rendered Markdown (diário) — Tailwind's reset strips list/heading styles,
+   so restore a readable prose look scoped to .markdown. */
+.markdown {
+  line-height: 1.6;
+}
+.markdown > :first-child {
+  margin-top: 0;
+}
+.markdown > :last-child {
+  margin-bottom: 0;
+}
+.markdown h1,
+.markdown h2,
+.markdown h3,
+.markdown h4 {
+  font-weight: 600;
+  line-height: 1.3;
+  margin: 0.8em 0 0.4em;
+}
+.markdown h1 {
+  font-size: 1.25em;
+}
+.markdown h2 {
+  font-size: 1.15em;
+}
+.markdown h3 {
+  font-size: 1.05em;
+}
+.markdown p {
+  margin: 0.5em 0;
+}
+.markdown ul,
+.markdown ol {
+  margin: 0.5em 0;
+  padding-left: 1.4em;
+}
+.markdown ul {
+  list-style: disc;
+}
+.markdown ol {
+  list-style: decimal;
+}
+.markdown li {
+  margin: 0.2em 0;
+}
+.markdown a {
+  color: var(--color-indigo-600);
+  text-decoration: underline;
+}
+.markdown code {
+  background: color-mix(in srgb, currentColor 12%, transparent);
+  padding: 0.1em 0.3em;
+  border-radius: 4px;
+  font-size: 0.9em;
+}
+.markdown pre {
+  background: color-mix(in srgb, currentColor 8%, transparent);
+  padding: 0.75em;
+  border-radius: 8px;
+  overflow-x: auto;
+}
+.markdown pre code {
+  background: none;
+  padding: 0;
+}
+.markdown blockquote {
+  border-left: 3px solid color-mix(in srgb, currentColor 25%, transparent);
+  padding-left: 0.8em;
+  margin: 0.5em 0;
+  opacity: 0.85;
+}
+.markdown strong {
+  font-weight: 600;
+}
+
+/* Print: show only the .print-area (used by the Currículo export), and force a
+   readable light "paper" palette regardless of the app's dark mode. */
+@media print {
+  body * {
+    visibility: hidden;
+  }
+  .print-area,
+  .print-area * {
+    visibility: visible;
+  }
+  .print-area {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 24px;
+    width: 100%;
+    background: #ffffff !important;
+    color: #1e293b !important;
+    border: none !important;
+  }
+  .print-area h2,
+  .print-area p,
+  .print-area li,
+  .print-area span,
+  .print-area a {
+    color: #1e293b !important;
+  }
+  /* Section headings and highlighted competencies keep the brand accent. */
+  .print-area h3,
+  .print-area .text-indigo-600,
+  .print-area .text-indigo-700,
+  .print-area .text-indigo-300 {
+    color: #4a216e !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+}

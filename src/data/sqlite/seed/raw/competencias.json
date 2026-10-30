@@ -1,0 +1,74 @@
+[
+  {
+    "slug": "qualidade-seguranca",
+    "nome": "Qualidade & Segurança",
+    "tipo": "hard",
+    "descricao": "Revisão de código, testes, boas práticas e segurança (security-first)."
+  },
+  {
+    "slug": "monitoramento-incidentes",
+    "nome": "Monitoramento & Incidentes",
+    "tipo": "hard",
+    "descricao": "Observabilidade, monitorias, resposta a falhas e post-mortems."
+  },
+  {
+    "slug": "arquitetura",
+    "nome": "Arquitetura",
+    "tipo": "hard",
+    "descricao": "Design de serviços e sistemas, padrões e evolução do domínio."
+  },
+  {
+    "slug": "entrega",
+    "nome": "Entrega",
+    "tipo": "soft",
+    "descricao": "Entrega incremental de valor, compromissos e desbloqueio de impedimentos."
+  },
+  {
+    "slug": "feedback",
+    "nome": "Feedback",
+    "tipo": "soft",
+    "descricao": "Dar e buscar feedback construtivo e reconhecer entregas e comportamentos."
+  },
+  {
+    "slug": "colaboracao",
+    "nome": "Colaboração",
+    "tipo": "soft",
+    "descricao": "Comunicação efetiva, compartilhamento de conhecimento e documentação."
+  },
+  {
+    "slug": "estrategia",
+    "nome": "Estratégia",
+    "tipo": "soft",
+    "descricao": "Entendimento da estratégia do time/negócio e foco no usuário/cliente."
+  },
+  {
+    "slug": "aplicacao-conhecimento",
+    "nome": "Aplicação do conhecimento",
+    "tipo": "hard",
+    "descricao": "Domínio e aplicação de princípios, práticas e padrões de mercado."
+  },
+  {
+    "slug": "resolucao-problemas-tecnicos",
+    "nome": "Resolução de problemas técnicos",
+    "tipo": "hard",
+    "descricao": "Solução de problemas técnicos de complexidade e criatividade crescentes."
+  },
+  {
+    "slug": "liberdade-atuacao-tecnica",
+    "nome": "Liberdade de atuação técnica",
+    "tipo": "soft",
+    "descricao": "Grau de autonomia na definição de abordagens e objetivos técnicos."
+  },
+  {
+    "slug": "impacto",
+    "nome": "Impacto",
+    "tipo": "soft",
+    "descricao": "Abrangência das contribuições e consequências das decisões na organização."
+  },
+  {
+    "slug": "relacionamentos",
+    "nome": "Relacionamentos",
+    "tipo": "soft",
+    "descricao": "Relações internas/externas e representação técnica da organização."
+  }
+]

@@ -1,0 +1,285 @@
+[
+  {
+    "nome": "AWS Certified Cloud Practitioner",
+    "provedor": "AWS",
+    "url": "https://aws.amazon.com/certification/",
+    "gratuita": false,
+    "categoria": "Cloud & Arquitetura",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "aws",
+      "cloud",
+      "fundamentos"
+    ],
+    "competencias": [
+      "arquitetura"
+    ]
+  },
+  {
+    "nome": "AWS Certified Solutions Architect – Associate",
+    "provedor": "AWS",
+    "url": "https://aws.amazon.com/certification/",
+    "gratuita": false,
+    "categoria": "Cloud & Arquitetura",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "aws",
+      "cloud",
+      "arquitetura"
+    ],
+    "competencias": [
+      "arquitetura"
+    ]
+  },
+  {
+    "nome": "AWS Certified Developer – Associate",
+    "provedor": "AWS",
+    "url": "https://aws.amazon.com/certification/",
+    "gratuita": false,
+    "categoria": "Cloud & Arquitetura",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "aws",
+      "developer"
+    ],
+    "competencias": [
+      "arquitetura",
+      "resolucao-problemas-tecnicos"
+    ]
+  },
+  {
+    "nome": "AWS Certified Security – Specialty",
+    "provedor": "AWS",
+    "url": "https://aws.amazon.com/certification/",
+    "gratuita": false,
+    "categoria": "Segurança",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "aws",
+      "seguranca"
+    ],
+    "competencias": [
+      "qualidade-seguranca"
+    ]
+  },
+  {
+    "nome": "Google Cloud – Professional Cloud Architect",
+    "provedor": "Google Cloud",
+    "url": "https://cloud.google.com/learn/certification",
+    "gratuita": false,
+    "categoria": "Cloud & Arquitetura",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "gcp",
+      "cloud",
+      "arquitetura"
+    ],
+    "competencias": [
+      "arquitetura"
+    ]
+  },
+  {
+    "nome": "Microsoft Certified: Azure Fundamentals (AZ-900)",
+    "provedor": "Microsoft",
+    "url": "https://learn.microsoft.com/credentials/",
+    "gratuita": false,
+    "categoria": "Cloud & Arquitetura",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "azure",
+      "fundamentos"
+    ],
+    "competencias": [
+      "arquitetura"
+    ]
+  },
+  {
+    "nome": "Certified Kubernetes Administrator (CKA)",
+    "provedor": "CNCF",
+    "url": "https://www.cncf.io/training/certification/",
+    "gratuita": false,
+    "categoria": "Containers & DevOps",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "kubernetes",
+      "k8s",
+      "devops"
+    ],
+    "competencias": [
+      "arquitetura",
+      "monitoramento-incidentes"
+    ]
+  },
+  {
+    "nome": "Prometheus Certified Associate (PCA)",
+    "provedor": "CNCF",
+    "url": "https://www.cncf.io/training/certification/",
+    "gratuita": false,
+    "categoria": "Observabilidade",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "prometheus",
+      "observabilidade",
+      "metricas"
+    ],
+    "competencias": [
+      "monitoramento-incidentes"
+    ]
+  },
+  {
+    "nome": "HashiCorp Certified: Terraform Associate",
+    "provedor": "HashiCorp",
+    "url": "https://www.hashicorp.com/certification",
+    "gratuita": false,
+    "categoria": "Containers & DevOps",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "terraform",
+      "iac",
+      "devops"
+    ],
+    "competencias": [
+      "arquitetura"
+    ]
+  },
+  {
+    "nome": "ISTQB Certified Tester – Foundation Level",
+    "provedor": "ISTQB",
+    "url": "https://www.istqb.org/",
+    "gratuita": false,
+    "categoria": "Qualidade & Testes",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "testes",
+      "qa",
+      "qualidade"
+    ],
+    "competencias": [
+      "qualidade-seguranca"
+    ]
+  },
+  {
+    "nome": "(ISC)² Certified in Cybersecurity (CC)",
+    "provedor": "(ISC)²",
+    "url": "https://www.isc2.org/certifications",
+    "gratuita": true,
+    "categoria": "Segurança",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "seguranca",
+      "cybersecurity"
+    ],
+    "competencias": [
+      "qualidade-seguranca"
+    ]
+  },
+  {
+    "nome": "Professional Scrum Developer (PSD)",
+    "provedor": "Scrum.org",
+    "url": "https://www.scrum.org/professional-scrum-certifications",
+    "gratuita": false,
+    "categoria": "Ágil & Entrega",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "scrum",
+      "agil"
+    ],
+    "competencias": [
+      "entrega",
+      "qualidade-seguranca"
+    ]
+  },
+  {
+    "nome": "Oracle Certified Professional: Java SE",
+    "provedor": "Oracle",
+    "url": "https://education.oracle.com/certification",
+    "gratuita": false,
+    "categoria": "Linguagens",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "java"
+    ],
+    "competencias": [
+      "aplicacao-conhecimento",
+      "resolucao-problemas-tecnicos"
+    ]
+  },
+  {
+    "nome": "GitHub Foundations",
+    "provedor": "GitHub",
+    "url": "https://resources.github.com/learn/certifications/",
+    "gratuita": false,
+    "categoria": "Fundamentos",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "git",
+      "github"
+    ],
+    "competencias": [
+      "colaboracao",
+      "entrega"
+    ]
+  },
+  {
+    "nome": "Linux Foundation Certified IT Associate (LFCA)",
+    "provedor": "Linux Foundation",
+    "url": "https://training.linuxfoundation.org/certification/",
+    "gratuita": false,
+    "categoria": "Containers & DevOps",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "linux"
+    ],
+    "competencias": [
+      "aplicacao-conhecimento"
+    ]
+  },
+  {
+    "nome": "freeCodeCamp – Certificações (várias)",
+    "provedor": "freeCodeCamp",
+    "url": "https://www.freecodecamp.org/learn",
+    "gratuita": true,
+    "categoria": "Fundamentos",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "web",
+      "javascript",
+      "gratuito"
+    ],
+    "competencias": [
+      "aplicacao-conhecimento"
+    ]
+  }
+]

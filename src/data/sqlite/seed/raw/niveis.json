@@ -1,0 +1,38 @@
+[
+  {
+    "key": "developer-1",
+    "nome": "Developer I",
+    "ordem": 1,
+    "descricao": "Atua com supervisão próxima, seguindo instruções específicas. Foco em aprendizado técnico e na execução de tarefas rotineiras de escopo e complexidade limitados."
+  },
+  {
+    "key": "developer-2",
+    "nome": "Developer II",
+    "ordem": 2,
+    "descricao": "Entrega valor de forma produtiva sob direcionamento específico. Assume falhas do domínio da equipe e aplica boas práticas em problemas de complexidade moderada."
+  },
+  {
+    "key": "developer-3",
+    "nome": "Developer III",
+    "ordem": 3,
+    "descricao": "Atua com autonomia dentro do domínio da equipe sob direcionamento amplo. É referência em boas práticas e apoia o crescimento técnico de outras pessoas desenvolvedoras."
+  },
+  {
+    "key": "dev-specialist-1",
+    "nome": "Dev Specialist I",
+    "ordem": 4,
+    "descricao": "Lidera tecnicamente a equipe com pouca direção. Arquiteta serviços e sistemas, antecipa casos de uso futuros e influencia decisões de design e segurança."
+  },
+  {
+    "key": "dev-specialist-2",
+    "nome": "Dev Specialist II",
+    "ordem": 5,
+    "descricao": "Atua entre a equipe e equipes pares. Define estratégia técnica, de testes e de segurança e tem autonomia para determinar os objetivos técnicos da atuação."
+  },
+  {
+    "key": "dev-specialist-3",
+    "nome": "Dev Specialist III",
+    "ordem": 6,
+    "descricao": "Referência técnica da Value Stream. Impulsiona arquitetura, qualidade e cultura em escala, com resultados avaliados em perspectiva de longo prazo."
+  }
+]
