@@ -277,6 +277,31 @@ export const MIGRATIONS: Migration[] = [
       CREATE INDEX idx_ciclos_user ON ciclos(user_id);
     `,
   },
+  {
+    version: 5,
+    name: 'auth_roles_tokens',
+    sql: /* sql */ `
+      -- Papel do usuário (por enquanto só 'user' e 'admin'; mais papéis virão).
+      ALTER TABLE users ADD COLUMN role TEXT NOT NULL DEFAULT 'user'
+        CHECK (role IN ('user', 'admin'));
+      UPDATE users SET role = 'admin' WHERE is_admin;
+      ALTER TABLE users DROP COLUMN is_admin;
+
+      ALTER TABLE users ADD COLUMN email_verified_at TIMESTAMPTZ;
+      ALTER TABLE users ADD COLUMN password_changed_at TIMESTAMPTZ;
+
+      -- Tokens de uso único enviados por e-mail (id = SHA-256 do token).
+      CREATE TABLE auth_tokens (
+        id TEXT PRIMARY KEY,
+        user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        purpose TEXT NOT NULL CHECK (purpose IN ('reset_password', 'verify_email')),
+        expires_at TIMESTAMPTZ NOT NULL,
+        used_at TIMESTAMPTZ,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+      );
+      CREATE INDEX idx_auth_tokens_user ON auth_tokens(user_id, purpose);
+    `,
+  },
 ]
 
 /** Arbitrary key for the advisory lock that serializes migrations across replicas. */

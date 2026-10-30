@@ -5,31 +5,43 @@ import { apiFetch, ApiError, onUnauthorized } from '@/data/http/api'
 
 interface AuthContextValue {
   user: AuthUser | null
+  /** Whether the server can send e-mail (password reset, verification). */
+  emailEnabled: boolean
   login(email: string, senha: string): Promise<void>
   register(input: { email: string; nome: string; senha: string }): Promise<void>
   logout(): Promise<void>
+  /** Sets a new password from an e-mailed reset link; signs the user in. */
+  resetPassword(token: string, senha: string): Promise<void>
+  /** Re-reads the signed-in account (e.g. after confirming the e-mail). */
+  refresh(): Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null)
 
 type Status = { state: 'loading' } | { state: 'ready' } | { state: 'error'; error: Error }
 
+const fetchMe = () =>
+  apiFetch<AuthUser>('/auth/me').catch((err: unknown) => {
+    // 401 just means "not signed in"; anything else is the API being down.
+    if (err instanceof ApiError && err.status === 401) return null
+    throw err
+  })
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<AuthUser | null>(null)
+  const [emailEnabled, setEmailEnabled] = useState(false)
   const [status, setStatus] = useState<Status>({ state: 'loading' })
 
   useEffect(() => {
     let cancelled = false
-    apiFetch<AuthUser>('/auth/me')
-      .then((u) => !cancelled && setUser(u))
-      .catch((err: unknown) => {
-        // 401 just means "not signed in"; anything else is the API being down.
+    Promise.all([fetchMe(), apiFetch<{ emailEnabled: boolean }>('/auth/config')])
+      .then(([u, config]) => {
         if (cancelled) return
-        if (!(err instanceof ApiError && err.status === 401)) {
-          setStatus({ state: 'error', error: err as Error })
-        }
+        setUser(u)
+        setEmailEnabled(config.emailEnabled)
+        setStatus({ state: 'ready' })
       })
-      .finally(() => !cancelled && setStatus((s) => (s.state === 'loading' ? { state: 'ready' } : s)))
+      .catch((err: unknown) => !cancelled && setStatus({ state: 'error', error: err as Error }))
     return () => {
       cancelled = true
     }
@@ -49,6 +61,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const logout = useCallback(async () => {
     await apiFetch('/auth/logout', {}).catch(() => {})
     setUser(null)
+  }, [])
+
+  const resetPassword = useCallback(async (token: string, senha: string) => {
+    setUser(await apiFetch<AuthUser>('/auth/reset-password', { token, senha }))
+  }, [])
+
+  const refresh = useCallback(async () => {
+    setUser(await fetchMe())
   }, [])
 
   if (status.state === 'loading') {
@@ -81,7 +101,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, login, register, logout }}>{children}</AuthContext.Provider>
+    <AuthContext.Provider
+      value={{ user, emailEnabled, login, register, logout, resetPassword, refresh }}
+    >
+      {children}
+    </AuthContext.Provider>
   )
 }
 

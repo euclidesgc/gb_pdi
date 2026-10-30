@@ -1,26 +1,13 @@
 import { Hono, type Context } from 'hono'
-import { deleteCookie, getCookie, setCookie } from 'hono/cookie'
 import { serveStatic } from '@hono/node-server/serve-static'
 import type { CatalogRepository } from '@/data/ports/CatalogRepository'
 import type { PdiRepository } from '@/data/ports/PdiRepository'
-import {
-  CATALOG_READ_METHODS,
-  CATALOG_WRITE_METHODS,
-  PDI_METHODS,
-  type AuthUser,
-} from '@/domain/auth'
+import { CATALOG_READ_METHODS, CATALOG_WRITE_METHODS, PDI_METHODS } from '@/domain/auth'
 import type { PgDatabase } from './db/PgDatabase'
+import type { Mailer } from './mail/mailer'
 import { PgCatalogRepository } from './repositories/PgCatalogRepository'
 import { PgPdiRepository } from './repositories/PgPdiRepository'
-import {
-  authenticate,
-  createSession,
-  createUser,
-  deleteSession,
-  EmailEmUsoError,
-  SESSION_TTL_DAYS,
-  userFromSession,
-} from './auth/users'
+import { createAuth, type AuthEnv } from './auth/routes'
 
 // Compile-time guard: the RPC whitelists must cover every repository method
 // (except the server-only bulk `replaceAll`), so a new port method can't be
@@ -38,31 +25,22 @@ const _pdiComplete: Missing<PdiRepository, (typeof PDI_METHODS)[number]> extends
 void _catalogComplete
 void _pdiComplete
 
-const SESSION_COOKIE = 'gbpdi_session'
-
-type Env = { Variables: { user: AuthUser; token: string } }
-
 interface AppOptions {
   db: PgDatabase
+  mailer: Mailer
+  /** Public base URL used in e-mail links. */
+  appUrl: string
   /** Built SPA directory (served in production). Omit in dev (Vite serves it). */
   staticDir?: string
   secureCookies: boolean
 }
 
-export function createApp({ db, staticDir, secureCookies }: AppOptions) {
-  const app = new Hono<Env>()
+export function createApp({ db, mailer, appUrl, staticDir, secureCookies }: AppOptions) {
+  const app = new Hono()
   const catalog = new PgCatalogRepository(db)
+  const { auth, admin, requireUser } = createAuth({ db, mailer, appUrl, secureCookies })
 
-  const setSessionCookie = (c: Context, token: string) =>
-    setCookie(c, SESSION_COOKIE, token, {
-      httpOnly: true,
-      secure: secureCookies,
-      sameSite: 'Lax',
-      path: '/',
-      maxAge: SESSION_TTL_DAYS * 24 * 60 * 60,
-    })
-
-  const api = new Hono<Env>()
+  const api = new Hono<AuthEnv>()
 
   // CSRF: every mutating call must be JSON. A cross-site form can't send
   // `application/json` without a CORS preflight, which we never allow.
@@ -78,64 +56,24 @@ export function createApp({ db, staticDir, secureCookies }: AppOptions) {
     return c.json({ ok: true })
   })
 
-  // ---- Auth ----
-  api.post('/auth/register', async (c) => {
-    const body = await c.req.json<{ email?: string; nome?: string; senha?: string }>()
-    const email = body.email?.trim() ?? ''
-    const nome = body.nome?.trim() ?? ''
-    const senha = body.senha ?? ''
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return c.json({ error: 'E-mail inválido' }, 400)
-    if (!nome) return c.json({ error: 'Informe seu nome' }, 400)
-    if (senha.length < 8) return c.json({ error: 'A senha precisa ter ao menos 8 caracteres' }, 400)
-    try {
-      const user = await createUser(db, { email, nome, senha })
-      setSessionCookie(c, await createSession(db, user.id))
-      return c.json(user, 201)
-    } catch (err) {
-      if (err instanceof EmailEmUsoError) return c.json({ error: err.message }, 409)
-      throw err
-    }
-  })
-
-  api.post('/auth/login', async (c) => {
-    const body = await c.req.json<{ email?: string; senha?: string }>()
-    const user = await authenticate(db, body.email ?? '', body.senha ?? '')
-    if (!user) return c.json({ error: 'E-mail ou senha incorretos' }, 401)
-    setSessionCookie(c, await createSession(db, user.id))
-    return c.json(user)
-  })
-
-  api.post('/auth/logout', async (c) => {
-    const token = getCookie(c, SESSION_COOKIE)
-    if (token) await deleteSession(db, token)
-    deleteCookie(c, SESSION_COOKIE, { path: '/' })
-    return c.json({ ok: true })
-  })
-
-  // Everything below requires a session.
-  api.use('*', async (c, next) => {
-    const token = getCookie(c, SESSION_COOKIE)
-    const user = token ? await userFromSession(db, token) : null
-    if (!user || !token) return c.json({ error: 'Não autenticado' }, 401)
-    c.set('user', user)
-    c.set('token', token)
-    await next()
-  })
-
-  api.get('/auth/me', (c) => c.json(c.get('user')))
+  api.route('/auth', auth)
+  api.route('/admin', admin)
 
   // ---- Repositories over RPC: POST /api/rpc/<repo>/<method> { args: [...] } ----
+  const rpc = new Hono<AuthEnv>()
+  rpc.use('*', requireUser)
+
   const readArgs = async (c: Context): Promise<unknown[]> => {
     const body = await c.req.json<{ args?: unknown }>().catch(() => ({ args: [] }))
     return Array.isArray(body.args) ? body.args : []
   }
 
-  api.post('/rpc/catalog/:method', async (c) => {
+  rpc.post('/catalog/:method', async (c) => {
     const method = c.req.param('method')
     const isRead = (CATALOG_READ_METHODS as readonly string[]).includes(method)
     const isWrite = (CATALOG_WRITE_METHODS as readonly string[]).includes(method)
     if (!isRead && !isWrite) return c.json({ error: 'Método desconhecido' }, 404)
-    if (isWrite && !c.get('user').isAdmin) {
+    if (isWrite && c.get('user').role !== 'admin') {
       return c.json({ error: 'Apenas administradores podem editar o catálogo' }, 403)
     }
     const fn = catalog[method as keyof CatalogRepository] as (...a: unknown[]) => Promise<unknown>
@@ -143,7 +81,7 @@ export function createApp({ db, staticDir, secureCookies }: AppOptions) {
     return c.json({ result: result ?? null })
   })
 
-  api.post('/rpc/pdi/:method', async (c) => {
+  rpc.post('/pdi/:method', async (c) => {
     const method = c.req.param('method')
     if (!(PDI_METHODS as readonly string[]).includes(method)) {
       return c.json({ error: 'Método desconhecido' }, 404)
@@ -153,6 +91,8 @@ export function createApp({ db, staticDir, secureCookies }: AppOptions) {
     const result = await fn.apply(pdi, await readArgs(c))
     return c.json({ result: result ?? null })
   })
+
+  api.route('/rpc', rpc)
 
   api.onError((err, c) => {
     console.error('[api]', c.req.method, c.req.path, err)

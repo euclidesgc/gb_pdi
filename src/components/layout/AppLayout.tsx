@@ -18,6 +18,7 @@ import {
   X,
 } from 'lucide-react'
 import { useAuth } from '@/auth/AuthProvider'
+import { isAdmin } from '@/domain/auth'
 import { cn } from '@/lib/cn'
 import { ThemeToggle } from './ThemeToggle'
 
@@ -61,7 +62,7 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
         ))}
       </nav>
       <div className="mt-auto pt-6">
-        {user?.isAdmin && (
+        {isAdmin(user) && (
           <NavLink
             to="/admin"
             onClick={onNavigate}
@@ -140,7 +141,7 @@ export function AppLayout() {
             <Menu className="h-4 w-4" />
           </button>
           <div className="ml-auto flex items-center gap-2">
-            {user?.isAdmin && (
+            {isAdmin(user) && (
               <NavLink
                 to="/admin"
                 className="flex items-center gap-1.5 rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"

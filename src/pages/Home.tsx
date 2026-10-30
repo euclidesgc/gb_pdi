@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ArrowRight, LogOut, Settings } from 'lucide-react'
 import { useAuth } from '@/auth/AuthProvider'
+import { isAdmin } from '@/domain/auth'
 
 export function Home() {
   const { user, logout } = useAuth()
@@ -22,7 +23,7 @@ export function Home() {
             {user ? 'Abrir meu PDI' : 'Entrar'}
             <ArrowRight className="h-4 w-4" />
           </Link>
-          {user?.isAdmin && (
+          {isAdmin(user) && (
             <Link
               to="/admin"
               className="flex items-center justify-center gap-2 rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-600 transition-colors hover:bg-slate-50 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700"

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, Check, Download, Upload } from 'lucide-react'
 import { Button, Card, Field, Select, SelectItem, SELECT_NONE, TextArea, TextInput } from '@/components/ui/controls'
+import { SegurancaCard } from '@/components/app/SegurancaCard'
 import { useCatalogRepository, usePdiRepository } from '@/data/repositories'
 import type { Area, NivelCarreira } from '@/domain/catalog'
 import type { PdiExport, Perfil as PerfilModel } from '@/domain/pdi'
@@ -198,6 +199,8 @@ export function Perfil() {
           )}
         </div>
       </Card>
+
+      <SegurancaCard />
     </div>
   )
 }

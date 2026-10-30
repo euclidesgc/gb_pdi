@@ -10,6 +10,7 @@ import {
   LayoutDashboard,
   Menu,
   Route as RouteIcon,
+  Users,
   X,
 } from 'lucide-react'
 import { cn } from '@/lib/cn'
@@ -22,6 +23,7 @@ const NAV = [
   { to: '/admin/matriz', label: 'Matriz de competências', icon: Grid3x3 },
   { to: '/admin/certificacoes', label: 'Certificações', icon: Award },
   { to: '/admin/trilha-templates', label: 'Templates de trilha', icon: RouteIcon },
+  { to: '/admin/usuarios', label: 'Usuários', icon: Users },
 ]
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
@@ -72,7 +74,7 @@ export function AdminLayout() {
           <div className="text-lg font-black tracking-tight text-slate-800 dark:text-slate-100">
             Administração
           </div>
-          <div className="text-xs text-slate-400">Catálogo de referência</div>
+          <div className="text-xs text-slate-400">Catálogo e usuários</div>
         </div>
         <div className="mt-8 flex flex-1 flex-col">
           <NavLinks />

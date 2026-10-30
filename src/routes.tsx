@@ -4,6 +4,9 @@ import { AppLayout } from '@/components/layout/AppLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { Home } from '@/pages/Home'
 import { Login } from '@/pages/Login'
+import { EsqueciSenha } from '@/pages/auth/EsqueciSenha'
+import { RedefinirSenha } from '@/pages/auth/RedefinirSenha'
+import { VerificarEmail } from '@/pages/auth/VerificarEmail'
 import { RequireAdmin, RequireAuth } from '@/auth/guards'
 import { AppIndex } from '@/pages/app/AppIndex'
 
@@ -44,6 +47,9 @@ const MatrizAdmin = lazy(() =>
 const CertificacoesAdmin = lazy(() =>
   import('@/pages/admin/Certificacoes').then((m) => ({ default: m.CertificacoesAdmin })),
 )
+const UsuariosAdmin = lazy(() =>
+  import('@/pages/admin/Usuarios').then((m) => ({ default: m.UsuariosAdmin })),
+)
 const TrilhaTemplatesAdmin = lazy(() =>
   import('@/pages/admin/TrilhaTemplates').then((m) => ({ default: m.TrilhaTemplatesAdmin })),
 )
@@ -51,6 +57,9 @@ const TrilhaTemplatesAdmin = lazy(() =>
 export const router = createBrowserRouter([
   { path: '/', element: <Home /> },
   { path: '/login', element: <Login /> },
+  { path: '/esqueci-senha', element: <EsqueciSenha /> },
+  { path: '/redefinir-senha', element: <RedefinirSenha /> },
+  { path: '/verificar-email', element: <VerificarEmail /> },
   {
     path: '/app',
     element: (
@@ -87,6 +96,7 @@ export const router = createBrowserRouter([
       { path: 'matriz', element: <MatrizAdmin /> },
       { path: 'certificacoes', element: <CertificacoesAdmin /> },
       { path: 'trilha-templates', element: <TrilhaTemplatesAdmin /> },
+      { path: 'usuarios', element: <UsuariosAdmin /> },
     ],
   },
   { path: '*', element: <Navigate to="/" replace /> },

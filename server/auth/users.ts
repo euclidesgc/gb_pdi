@@ -1,44 +1,50 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import type { Database } from '../db/Database'
-import type { AuthUser } from '@/domain/auth'
+import type { AdminUserRow, AuthUser, UserRole } from '@/domain/auth'
 import { hashPassword, verifyPassword } from './password'
 
 export const SESSION_TTL_DAYS = 30
 
 const sha256 = (v: string) => createHash('sha256').update(v).digest('hex')
+const newToken = () => randomBytes(32).toString('base64url')
 
 function rowToUser(r: Record<string, unknown>): AuthUser {
   return {
     id: String(r.id),
     email: String(r.email),
     nome: String(r.nome ?? ''),
-    isAdmin: r.is_admin === true,
+    role: r.role === 'admin' ? 'admin' : 'user',
+    emailVerified: r.email_verified_at != null,
   }
 }
 
 export class EmailEmUsoError extends Error {}
+export class RoleBloqueadaError extends Error {}
 
 /**
- * Catalog admins, by e-mail (`ADMIN_EMAILS`, comma-separated). When set, only
- * these accounts are admins and everyone else is a regular user. When unset
- * (local dev), the very first account to sign up becomes the admin.
+ * Catalog admins, by e-mail (`ADMIN_EMAILS`, comma-separated). These accounts
+ * are always admins (on sign-up and on every boot) and their role can't be
+ * changed from /admin. Other admins are promoted in /admin. When unset (local
+ * dev) and no admin exists yet, the first account to sign up becomes the admin.
  */
 const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? '')
   .split(',')
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean)
 
-/** Applies ADMIN_EMAILS to existing accounts (promotes listed, demotes the rest). */
+const isLockedAdmin = (email: string) => ADMIN_EMAILS.includes(email.toLowerCase())
+
+/** Promotes every ADMIN_EMAILS account that exists (never demotes anyone). */
 export async function syncAdmins(db: Database): Promise<void> {
   if (!ADMIN_EMAILS.length) return
   await db.run(
-    `UPDATE users SET is_admin = (lower(email) = ANY(string_to_array(?, ',')))
-      WHERE is_admin IS DISTINCT FROM (lower(email) = ANY(string_to_array(?, ',')))`,
-    [ADMIN_EMAILS.join(','), ADMIN_EMAILS.join(',')],
+    `UPDATE users SET role = 'admin'
+      WHERE role <> 'admin' AND lower(email) = ANY(string_to_array(?, ','))`,
+    [ADMIN_EMAILS.join(',')],
   )
 }
 
-/** Creates the account and its empty PDI profile (admin per ADMIN_EMAILS). */
+/** Creates the account and its empty PDI profile. */
 export async function createUser(
   db: Database,
   input: { email: string; nome: string; senha: string },
@@ -48,23 +54,32 @@ export async function createUser(
   if (existing) throw new EmailEmUsoError('E-mail já cadastrado')
   const id = randomUUID()
   const hash = await hashPassword(input.senha)
+  const role = ADMIN_EMAILS.length
+    ? `'${isLockedAdmin(email) ? 'admin' : 'user'}'`
+    : `CASE WHEN EXISTS (SELECT 1 FROM users WHERE role = 'admin') THEN 'user' ELSE 'admin' END`
   await db.tx([
     {
-      sql: ADMIN_EMAILS.length
-        ? `INSERT INTO users (id, email, nome, password_hash, is_admin) VALUES (?, ?, ?, ?, ?)`
-        : `INSERT INTO users (id, email, nome, password_hash, is_admin)
-           VALUES (?, ?, ?, ?, NOT EXISTS (SELECT 1 FROM users))`,
-      bind: ADMIN_EMAILS.length
-        ? [id, email, input.nome.trim(), hash, ADMIN_EMAILS.includes(email)]
-        : [id, email, input.nome.trim(), hash],
+      sql: `INSERT INTO users (id, email, nome, password_hash, role) VALUES (?, ?, ?, ?, ${role})`,
+      bind: [id, email, input.nome.trim(), hash],
     },
     {
       sql: 'INSERT INTO perfil (user_id, nome, email) VALUES (?, ?, ?)',
       bind: [id, input.nome.trim(), email],
     },
   ])
+  return (await getUser(db, id))!
+}
+
+export async function getUser(db: Database, id: string): Promise<AuthUser | null> {
   const row = await db.get('SELECT * FROM users WHERE id = ?', [id])
-  return rowToUser(row!)
+  return row ? rowToUser(row) : null
+}
+
+export async function findUserByEmail(db: Database, email: string): Promise<AuthUser | null> {
+  const row = await db.get('SELECT * FROM users WHERE lower(email) = ?', [
+    email.trim().toLowerCase(),
+  ])
+  return row ? rowToUser(row) : null
 }
 
 export async function authenticate(
@@ -83,9 +98,47 @@ export async function authenticate(
   return (await verifyPassword(senha, String(row.password_hash))) ? rowToUser(row) : null
 }
 
+export async function checkPassword(db: Database, userId: string, senha: string): Promise<boolean> {
+  const row = await db.get('SELECT password_hash FROM users WHERE id = ?', [userId])
+  return row ? verifyPassword(senha, String(row.password_hash)) : false
+}
+
+/**
+ * Sets a new password and ends every session of the account except `keepToken`
+ * (the caller's own session, when the change is made while signed in).
+ */
+export async function setPassword(
+  db: Database,
+  userId: string,
+  senha: string,
+  keepToken?: string,
+): Promise<void> {
+  const hash = await hashPassword(senha)
+  await db.tx([
+    {
+      sql: 'UPDATE users SET password_hash = ?, password_changed_at = now() WHERE id = ?',
+      bind: [hash, userId],
+    },
+    keepToken
+      ? {
+          sql: 'DELETE FROM sessions WHERE user_id = ? AND id <> ?',
+          bind: [userId, sha256(keepToken)],
+        }
+      : { sql: 'DELETE FROM sessions WHERE user_id = ?', bind: [userId] },
+    // Any pending reset link stops working once the password changed.
+    {
+      sql: `UPDATE auth_tokens SET used_at = now()
+             WHERE user_id = ? AND purpose = 'reset_password' AND used_at IS NULL`,
+      bind: [userId],
+    },
+  ])
+}
+
+// ---- Sessions ----
+
 /** Creates a session and returns the raw token (only its hash is stored). */
 export async function createSession(db: Database, userId: string): Promise<string> {
-  const token = randomBytes(32).toString('base64url')
+  const token = newToken()
   await db.run(
     `INSERT INTO sessions (id, user_id, expires_at)
      VALUES (?, ?, now() + (? || ' days')::interval)`,
@@ -107,6 +160,102 @@ export async function deleteSession(db: Database, token: string): Promise<void> 
   await db.run('DELETE FROM sessions WHERE id = ?', [sha256(token)])
 }
 
-export async function purgeExpiredSessions(db: Database): Promise<void> {
+/** Ends every other session of the user (the current one stays). Returns how many ended. */
+export async function deleteOtherSessions(
+  db: Database,
+  userId: string,
+  keepToken: string,
+): Promise<number> {
+  return db.run('DELETE FROM sessions WHERE user_id = ? AND id <> ?', [userId, sha256(keepToken)])
+}
+
+export async function purgeExpired(db: Database): Promise<void> {
   await db.run('DELETE FROM sessions WHERE expires_at <= now()')
+  await db.run(`DELETE FROM auth_tokens WHERE expires_at <= now() - interval '7 days'`)
+}
+
+// ---- One-time e-mail tokens (reset de senha, verificação de e-mail) ----
+
+export type TokenPurpose = 'reset_password' | 'verify_email'
+
+export const TOKEN_TTL_HOURS: Record<TokenPurpose, number> = {
+  reset_password: 1,
+  verify_email: 48,
+}
+
+/** Issues a single-use token, invalidating earlier unused ones of the same purpose. */
+export async function issueToken(
+  db: Database,
+  userId: string,
+  purpose: TokenPurpose,
+): Promise<string> {
+  const token = newToken()
+  await db.tx([
+    {
+      sql: `UPDATE auth_tokens SET used_at = now()
+             WHERE user_id = ? AND purpose = ? AND used_at IS NULL`,
+      bind: [userId, purpose],
+    },
+    {
+      sql: `INSERT INTO auth_tokens (id, user_id, purpose, expires_at)
+            VALUES (?, ?, ?, now() + (? || ' hours')::interval)`,
+      bind: [sha256(token), userId, purpose, String(TOKEN_TTL_HOURS[purpose])],
+    },
+  ])
+  return token
+}
+
+/** Marks the token used and returns its user id, or null when invalid/expired/used. */
+export async function consumeToken(
+  db: Database,
+  token: string,
+  purpose: TokenPurpose,
+): Promise<string | null> {
+  const row = await db.get<{ user_id: string }>(
+    `UPDATE auth_tokens SET used_at = now()
+      WHERE id = ? AND purpose = ? AND used_at IS NULL AND expires_at > now()
+      RETURNING user_id`,
+    [sha256(token), purpose],
+  )
+  return row ? row.user_id : null
+}
+
+export async function markEmailVerified(db: Database, userId: string): Promise<void> {
+  await db.run(
+    'UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()) WHERE id = ?',
+    [userId],
+  )
+}
+
+// ---- Administração de usuários ----
+
+/** Search by name or e-mail (case-insensitive substring), newest first. */
+export async function searchUsers(db: Database, q: string, limit = 50): Promise<AdminUserRow[]> {
+  const term = `%${q.trim().replace(/[\\%_]/g, (c) => '\\' + c)}%`
+  const rows = await db.all(
+    `SELECT * FROM users
+      WHERE nome ILIKE ? OR email ILIKE ?
+      ORDER BY created_at DESC
+      LIMIT ?`,
+    [term, term, limit],
+  )
+  return rows.map((r) => ({
+    ...rowToUser(r),
+    createdAt: new Date(r.created_at as string).toISOString(),
+    roleLocked: isLockedAdmin(String(r.email)),
+  }))
+}
+
+export async function setRole(
+  db: Database,
+  userId: string,
+  role: UserRole,
+): Promise<AuthUser | null> {
+  const user = await getUser(db, userId)
+  if (!user) return null
+  if (isLockedAdmin(user.email) && role !== 'admin') {
+    throw new RoleBloqueadaError('Este administrador é definido em ADMIN_EMAILS no servidor.')
+  }
+  await db.run('UPDATE users SET role = ? WHERE id = ?', [role, userId])
+  return { ...user, role }
 }

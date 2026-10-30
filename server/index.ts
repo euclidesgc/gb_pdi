@@ -1,8 +1,9 @@
 import { serve } from '@hono/node-server'
 import { createApp } from './app'
-import { purgeExpiredSessions, syncAdmins } from './auth/users'
+import { purgeExpired, syncAdmins } from './auth/users'
 import { PgDatabase } from './db/PgDatabase'
 import { runMigrations } from './db/migrations'
+import { Mailer } from './mail/mailer'
 import { ensureCatalogSeeded } from './seed/ensureSeeded'
 
 const databaseUrl = process.env.DATABASE_URL
@@ -19,11 +20,18 @@ const db = new PgDatabase(databaseUrl)
 const applied = await runMigrations(db)
 console.log(`[db] migrations aplicadas: ${applied}`)
 await ensureCatalogSeeded(db)
-await purgeExpiredSessions(db)
+await purgeExpired(db)
 await syncAdmins(db)
+
+const mailer = new Mailer()
+console.log(`[mail] smtp: ${await mailer.verify().catch((err: Error) => `falha (${err.message})`)}`)
+
+const appUrl = (process.env.APP_URL ?? 'http://localhost:5173').replace(/\/+$/, '')
 
 const app = createApp({
   db,
+  mailer,
+  appUrl,
   staticDir: isProd ? (process.env.STATIC_DIR ?? './dist') : undefined,
   secureCookies: isProd,
 })

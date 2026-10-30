@@ -1,6 +1,7 @@
 import type { ReactNode } from 'react'
 import { Link, Navigate, useLocation } from 'react-router-dom'
 import { ShieldAlert } from 'lucide-react'
+import { isAdmin } from '@/domain/auth'
 import { useAuth } from './AuthProvider'
 
 /** Sends signed-out visitors to /login, remembering where they were going. */
@@ -17,7 +18,7 @@ export function RequireAuth({ children }: { children: ReactNode }) {
 export function RequireAdmin({ children }: { children: ReactNode }) {
   const { user } = useAuth()
   if (!user) return <RequireAuth>{children}</RequireAuth>
-  if (!user.isAdmin) {
+  if (!isAdmin(user)) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 dark:bg-slate-950">
         <div className="max-w-md text-center">
@@ -26,7 +27,7 @@ export function RequireAdmin({ children }: { children: ReactNode }) {
             Acesso restrito
           </h1>
           <p className="mt-2 text-sm text-slate-500 dark:text-slate-400">
-            Apenas administradores podem editar o catálogo de referência.
+            Apenas administradores podem acessar a administração.
           </p>
           <Link
             to="/app"
