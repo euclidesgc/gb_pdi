@@ -5,7 +5,10 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:api": "tsx watch --tsconfig tsconfig.server.json --env-file-if-exists=.env.local server/index.ts",
+    "dev:api": "tsx watch --tsconfig tsconfig.server.json --env-file-if-exists=.env.development --env-file-if-exists=.env.local server/index.ts",
+    "db:start": "scripts/dev-db.sh start",
+    "db:stop": "scripts/dev-db.sh stop",
+    "db:reset": "scripts/dev-db.sh reset",
     "build": "tsc -b && vite build && npm run build:server",
     "build:server": "esbuild server/index.ts --bundle --platform=node --format=esm --target=node24 --packages=external --tsconfig=tsconfig.server.json --outfile=dist-server/index.js",
     "start": "node dist-server/index.js",

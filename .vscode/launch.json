@@ -1,0 +1,45 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "API",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev:api"],
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "presentation": { "hidden": true },
+      // Roda quando a sessão termina por qualquer motivo (stop, crash ou fim do compound).
+      "postDebugTask": "db: stop"
+    },
+    {
+      "name": "Front (Vite)",
+      "type": "node",
+      "request": "launch",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "${workspaceFolder}",
+      "skipFiles": ["<node_internals>/**", "**/node_modules/**"],
+      "presentation": { "hidden": true }
+    },
+    {
+      "name": "Navegador",
+      "type": "chrome",
+      "request": "launch",
+      "url": "http://localhost:5173",
+      "webRoot": "${workspaceFolder}",
+      "preLaunchTask": "wait: front",
+      "presentation": { "hidden": true }
+    }
+  ],
+  "compounds": [
+    {
+      "name": "GB PDI (banco + API + front)",
+      "configurations": ["API", "Front (Vite)", "Navegador"],
+      "preLaunchTask": "db: start",
+      // Parar qualquer parte (ou fechar o navegador) encerra tudo, inclusive o banco.
+      "stopAll": true
+    }
+  ]
+}

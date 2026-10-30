@@ -1,0 +1,29 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "db: start",
+      "detail": "Sobe o Postgres local (cria na primeira vez)",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/dev-db.sh start",
+      "presentation": { "reveal": "silent", "panel": "shared", "clear": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "db: stop",
+      "detail": "Derruba o Postgres local",
+      "type": "shell",
+      "command": "${workspaceFolder}/scripts/dev-db.sh stop",
+      "presentation": { "reveal": "silent", "panel": "shared" },
+      "problemMatcher": []
+    },
+    {
+      "label": "wait: front",
+      "detail": "Espera o Vite responder antes de abrir o navegador",
+      "type": "shell",
+      "command": "for i in $(seq 1 120); do curl -sf -o /dev/null http://localhost:5173 && exit 0; sleep 0.5; done; echo 'O front não subiu em 60s' >&2; exit 1",
+      "presentation": { "reveal": "silent", "panel": "shared" },
+      "problemMatcher": []
+    }
+  ]
+}
