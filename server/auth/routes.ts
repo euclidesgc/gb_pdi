@@ -9,6 +9,7 @@ import {
   authenticate,
   checkPassword,
   consumeToken,
+  createApiToken,
   createSession,
   createUser,
   deleteOtherSessions,
@@ -17,7 +18,10 @@ import {
   findUserByEmail,
   getUser,
   issueToken,
+  LimiteTokensError,
+  listApiTokens,
   markEmailVerified,
+  revokeApiToken,
   RoleBloqueadaError,
   searchUsers,
   SESSION_TTL_DAYS,
@@ -252,6 +256,26 @@ export function createAuth({ db, mailer, appUrl, secureCookies }: AuthOptions) {
   auth.post('/logout-others', async (c) => {
     const ended = await deleteOtherSessions(db, c.get('user').id, c.get('token'))
     return c.json({ ok: true, ended })
+  })
+
+  // Personal access tokens for AI agents (MCP). The secret is returned only here, once.
+  auth.get('/api-tokens', async (c) => c.json(await listApiTokens(db, c.get('user').id)))
+
+  auth.post('/api-tokens', async (c) => {
+    const body = await c.req.json<{ nome?: string }>()
+    const nome = body.nome?.trim().slice(0, 60) ?? ''
+    if (!nome) return c.json({ error: 'Dê um nome ao token (ex.: "Claude no notebook")' }, 400)
+    try {
+      return c.json(await createApiToken(db, c.get('user').id, nome), 201)
+    } catch (err) {
+      if (err instanceof LimiteTokensError) return c.json({ error: err.message }, 409)
+      throw err
+    }
+  })
+
+  auth.post('/api-tokens/:id/revoke', async (c) => {
+    const ok = await revokeApiToken(db, c.get('user').id, c.req.param('id'))
+    return ok ? c.json({ ok: true }) : c.json({ error: 'Token não encontrado' }, 404)
   })
 
   // ---- /api/admin ----

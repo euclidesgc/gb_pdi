@@ -302,6 +302,24 @@ export const MIGRATIONS: Migration[] = [
       CREATE INDEX idx_auth_tokens_user ON auth_tokens(user_id, purpose);
     `,
   },
+  {
+    version: 6,
+    name: 'api_tokens',
+    sql: /* sql */ `
+      -- Tokens pessoais de acesso (agentes de IA via MCP). Guarda só o SHA-256 do
+      -- token; o prefixo serve para o usuário reconhecer o token na lista.
+      CREATE TABLE api_tokens (
+        id TEXT PRIMARY KEY,
+        token_hash TEXT NOT NULL UNIQUE,
+        user_id TEXT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+        nome TEXT NOT NULL,
+        prefixo TEXT NOT NULL,
+        created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+        last_used_at TIMESTAMPTZ
+      );
+      CREATE INDEX idx_api_tokens_user ON api_tokens(user_id);
+    `,
+  },
 ]
 
 /** Arbitrary key for the advisory lock that serializes migrations across replicas. */

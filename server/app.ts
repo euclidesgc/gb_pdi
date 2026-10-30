@@ -8,6 +8,7 @@ import type { Mailer } from './mail/mailer'
 import { PgCatalogRepository } from './repositories/PgCatalogRepository'
 import { PgPdiRepository } from './repositories/PgPdiRepository'
 import { createAuth, type AuthEnv } from './auth/routes'
+import { createMcpRoutes } from './mcp/routes'
 
 // Compile-time guard: the RPC whitelists must cover every repository method
 // (except the server-only bulk `replaceAll`), so a new port method can't be
@@ -101,6 +102,7 @@ export function createApp({ db, mailer, appUrl, staticDir, secureCookies }: AppO
   api.notFound((c) => c.json({ error: 'Rota não encontrada' }, 404))
 
   app.route('/api', api)
+  app.route('/mcp', createMcpRoutes(db))
 
   if (staticDir) {
     // Shell and service worker must never be cached, or the PWA won't update;

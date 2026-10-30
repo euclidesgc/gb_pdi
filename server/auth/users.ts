@@ -1,6 +1,6 @@
 import { createHash, randomBytes, randomUUID } from 'node:crypto'
 import type { Database } from '../db/Database'
-import type { AdminUserRow, AuthUser, UserRole } from '@/domain/auth'
+import type { AdminUserRow, ApiToken, AuthUser, UserRole } from '@/domain/auth'
 import { hashPassword, verifyPassword } from './password'
 
 export const SESSION_TTL_DAYS = 30
@@ -125,6 +125,8 @@ export async function setPassword(
           bind: [userId, sha256(keepToken)],
         }
       : { sql: 'DELETE FROM sessions WHERE user_id = ?', bind: [userId] },
+    // A reset (no session kept) may mean the account was taken over: drop the AI tokens too.
+    ...(keepToken ? [] : [{ sql: 'DELETE FROM api_tokens WHERE user_id = ?', bind: [userId] }]),
     // Any pending reset link stops working once the password changed.
     {
       sql: `UPDATE auth_tokens SET used_at = now()
@@ -225,6 +227,71 @@ export async function markEmailVerified(db: Database, userId: string): Promise<v
     'UPDATE users SET email_verified_at = COALESCE(email_verified_at, now()) WHERE id = ?',
     [userId],
   )
+}
+
+// ---- Tokens pessoais de acesso (agentes de IA via MCP) ----
+
+export const API_TOKEN_PREFIX = 'gbpdi_'
+/** Per-account cap, so a leaked session can't mint tokens without bound. */
+export const API_TOKENS_MAX = 10
+
+export class LimiteTokensError extends Error {}
+
+function rowToApiToken(r: Record<string, unknown>): ApiToken {
+  return {
+    id: String(r.id),
+    nome: String(r.nome),
+    prefixo: String(r.prefixo),
+    createdAt: new Date(r.created_at as string).toISOString(),
+    lastUsedAt: r.last_used_at ? new Date(r.last_used_at as string).toISOString() : null,
+  }
+}
+
+export async function listApiTokens(db: Database, userId: string): Promise<ApiToken[]> {
+  const rows = await db.all(
+    'SELECT * FROM api_tokens WHERE user_id = ? ORDER BY created_at DESC',
+    [userId],
+  )
+  return rows.map(rowToApiToken)
+}
+
+/** Creates a token and returns it with the raw secret (only its hash is stored). */
+export async function createApiToken(
+  db: Database,
+  userId: string,
+  nome: string,
+): Promise<ApiToken & { token: string }> {
+  const count = await db.get<{ n: number }>(
+    'SELECT COUNT(*) AS n FROM api_tokens WHERE user_id = ?',
+    [userId],
+  )
+  if ((count?.n ?? 0) >= API_TOKENS_MAX) {
+    throw new LimiteTokensError(`Limite de ${API_TOKENS_MAX} tokens. Revogue um para criar outro.`)
+  }
+  const token = API_TOKEN_PREFIX + newToken()
+  const id = randomUUID()
+  await db.run(
+    'INSERT INTO api_tokens (id, token_hash, user_id, nome, prefixo) VALUES (?, ?, ?, ?, ?)',
+    [id, sha256(token), userId, nome, token.slice(0, API_TOKEN_PREFIX.length + 4)],
+  )
+  const row = await db.get('SELECT * FROM api_tokens WHERE id = ?', [id])
+  return { ...rowToApiToken(row!), token }
+}
+
+export async function revokeApiToken(db: Database, userId: string, id: string): Promise<boolean> {
+  return (await db.run('DELETE FROM api_tokens WHERE id = ? AND user_id = ?', [id, userId])) > 0
+}
+
+export async function userFromApiToken(db: Database, token: string): Promise<AuthUser | null> {
+  if (!token.startsWith(API_TOKEN_PREFIX)) return null
+  const row = await db.get(
+    `UPDATE api_tokens t SET last_used_at = now()
+       FROM users u
+      WHERE t.token_hash = ? AND u.id = t.user_id
+      RETURNING u.*`,
+    [sha256(token)],
+  )
+  return row ? rowToUser(row) : null
 }
 
 // ---- Administração de usuários ----

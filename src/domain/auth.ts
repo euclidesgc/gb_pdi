@@ -22,7 +22,17 @@ export interface AdminUserRow extends AuthUser {
   roleLocked: boolean
 }
 
-export const isAdmin = (u: AuthUser | null | undefined): boolean => u?.role === 'admin'
+/** A personal access token (for AI agents over MCP). The secret is only shown once, on creation. */
+export interface ApiToken {
+  id: string
+  nome: string
+  /** First characters of the token, to tell tokens apart in the list. */
+  prefixo: string
+  createdAt: string
+  lastUsedAt: string | null
+}
+
+export const isAdmin =(u: AuthUser | null | undefined): boolean => u?.role === 'admin'
 
 /** Minimum password length, enforced by the API and hinted by the forms. */
 export const SENHA_MIN = 8

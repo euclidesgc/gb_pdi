@@ -16,7 +16,7 @@ export default defineConfig({
         // always go to the network — never served from the SW cache or
         // answered with the SPA's index.html.
         globPatterns: ['**/*.{js,css,html,svg}'],
-        navigateFallbackDenylist: [/^\/api\//],
+        navigateFallbackDenylist: [/^\/api\//, /^\/mcp/],
       },
       manifest: {
         name: 'GB PDI',
@@ -41,6 +41,7 @@ export default defineConfig({
     // `npm run dev:api` serves the API on :3000; the SPA calls it same-origin.
     proxy: {
       '/api': 'http://localhost:3000',
+      '/mcp': 'http://localhost:3000',
     },
   },
 })

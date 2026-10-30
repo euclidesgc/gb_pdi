@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react'
 import { AlertTriangle, Check, Download, Upload } from 'lucide-react'
 import { Button, Card, Field, Select, SelectItem, SELECT_NONE, TextArea, TextInput } from '@/components/ui/controls'
+import { AgentesIaCard } from '@/components/app/AgentesIaCard'
 import { SegurancaCard } from '@/components/app/SegurancaCard'
 import { useCatalogRepository, usePdiRepository } from '@/data/repositories'
 import type { Area, NivelCarreira } from '@/domain/catalog'
@@ -201,6 +202,7 @@ export function Perfil() {
       </Card>
 
       <SegurancaCard />
+      <AgentesIaCard />
     </div>
   )
 }
