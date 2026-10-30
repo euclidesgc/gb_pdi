@@ -25,3 +25,4 @@ dist-ssr
 
 # Ferramentas locais
 .code-review-graph/
+.env
