@@ -28,6 +28,14 @@ const bool = (v: unknown): boolean => Number(v ?? 0) === 1
 
 type Stmt = { sql: string; bind?: SqlBind }
 
+/** Link tables of a diário entry, in the order listDiario reads them. */
+const DIARIO_LINKS = [
+  { table: 'diario_habilidades', col: 'habilidade_id' },
+  { table: 'diario_objetivos', col: 'objetivo_id' },
+  { table: 'diario_acoes', col: 'acao_id' },
+  { table: 'diario_trilha', col: 'trilha_item_id' },
+] as const
+
 /**
  * The PDI of ONE user. Every query is scoped by `user_id`, and upserts only
  * update a row when it already belongs to this user (`WHERE t.user_id = …`), so
@@ -323,44 +331,71 @@ export class PgPdiRepository implements PdiRepository {
     const rows = await this.db.all('SELECT * FROM diario WHERE user_id = ? ORDER BY data DESC', [
       this.userId,
     ])
-    const links = await this.db.all(
-      `SELECT dh.diario_id, dh.habilidade_id FROM diario_habilidades dh
-         JOIN diario d ON d.id = dh.diario_id
-        WHERE d.user_id = ?`,
-      [this.userId],
+    const [habs, objs, acoes, trilha] = await Promise.all(
+      DIARIO_LINKS.map((l) =>
+        this.db.all(
+          `SELECT x.diario_id, x.${l.col} AS ref FROM ${l.table} x
+             JOIN diario d ON d.id = x.diario_id
+            WHERE d.user_id = ?`,
+          [this.userId],
+        ),
+      ),
     )
-    const byEntry = new Map<string, string[]>()
-    for (const l of links) {
-      const id = str(l.diario_id)
-      const arr = byEntry.get(id) ?? []
-      arr.push(str(l.habilidade_id))
-      byEntry.set(id, arr)
+    const group = (links: Row[]) => {
+      const byEntry = new Map<string, string[]>()
+      for (const l of links) {
+        const id = str(l.diario_id)
+        const arr = byEntry.get(id) ?? []
+        arr.push(str(l.ref))
+        byEntry.set(id, arr)
+      }
+      return byEntry
     }
-    return rows.map((r) => ({
-      id: str(r.id),
-      data: str(r.data),
-      texto: str(r.texto),
-      objetivoId: strOrNull(r.objetivo_id),
-      habilidadeIds: byEntry.get(str(r.id)) ?? [],
-    }))
+    const [h, o, a, t] = [habs, objs, acoes, trilha].map(group)
+    return rows.map((r) => {
+      const id = str(r.id)
+      return {
+        id,
+        data: str(r.data),
+        texto: str(r.texto),
+        objetivoIds: o.get(id) ?? [],
+        acaoIds: a.get(id) ?? [],
+        trilhaItemIds: t.get(id) ?? [],
+        habilidadeIds: h.get(id) ?? [],
+      }
+    })
   }
   async addDiario(e: DiarioEntry): Promise<void> {
     await this.db.tx(this.diarioInserts(e))
   }
   async deleteDiario(id: string): Promise<void> {
-    // diario_habilidades cascades from diario.
+    // The link tables cascade from diario.
     await this.deleteOwned('diario', id)
   }
-  private diarioInserts(e: DiarioEntry): Stmt[] {
+  private diarioInserts(e: DiarioEntry & { objetivoId?: string | null }): Stmt[] {
+    // Exports before v3 carried a single objetivoId.
+    const objetivoIds = e.objetivoIds ?? (e.objetivoId ? [e.objetivoId] : [])
+    // Linked records must belong to this user; unknown ids are skipped, not errors.
+    const owned = (table: string, col: string, ownerTable: string, ids: string[] | undefined) =>
+      (ids ?? []).map((ref) => ({
+        sql: `INSERT INTO ${table} (diario_id, ${col})
+                SELECT ?, id FROM ${ownerTable} WHERE id = ? AND user_id = ?
+              ON CONFLICT DO NOTHING`,
+        bind: [e.id, ref, this.userId],
+      }))
     return [
       {
-        sql: 'INSERT INTO diario (id, user_id, data, texto, objetivo_id) VALUES (?, ?, ?, ?, ?)',
-        bind: [e.id, this.userId, e.data, e.texto, e.objetivoId],
+        sql: 'INSERT INTO diario (id, user_id, data, texto) VALUES (?, ?, ?, ?)',
+        bind: [e.id, this.userId, e.data, e.texto],
       },
       ...(e.habilidadeIds ?? []).map((hid) => ({
-        sql: 'INSERT INTO diario_habilidades (diario_id, habilidade_id) VALUES (?, ?)',
+        sql: `INSERT INTO diario_habilidades (diario_id, habilidade_id) VALUES (?, ?)
+              ON CONFLICT DO NOTHING`,
         bind: [e.id, hid],
       })),
+      ...owned('diario_objetivos', 'objetivo_id', 'objetivos', objetivoIds),
+      ...owned('diario_acoes', 'acao_id', 'acoes', e.acaoIds),
+      ...owned('diario_trilha', 'trilha_item_id', 'trilha_itens', e.trilhaItemIds),
     ]
   }
 
@@ -439,7 +474,7 @@ export class PgPdiRepository implements PdiRepository {
         this.listCiclos(),
       ])
     return {
-      versao: 2,
+      versao: 3,
       exportadoEm: new Date().toISOString(),
       perfil,
       hardSkills,
@@ -458,7 +493,7 @@ export class PgPdiRepository implements PdiRepository {
   async importAll(data: PdiExport): Promise<void> {
     const u = this.userId
     const stmts: Stmt[] = [
-      // Clear this user's data (children before parents; diario_habilidades cascades).
+      // Clear this user's data (children before parents; the diário link tables cascade).
       ...[
         'forcas',
         'acoes',
