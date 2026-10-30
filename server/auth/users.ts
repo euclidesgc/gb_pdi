@@ -19,9 +19,26 @@ function rowToUser(r: Record<string, unknown>): AuthUser {
 export class EmailEmUsoError extends Error {}
 
 /**
- * Creates the account and its empty PDI profile. The very first account becomes
- * the admin (catalog editor); everyone after it is a regular user.
+ * Catalog admins, by e-mail (`ADMIN_EMAILS`, comma-separated). When set, only
+ * these accounts are admins and everyone else is a regular user. When unset
+ * (local dev), the very first account to sign up becomes the admin.
  */
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS ?? '')
+  .split(',')
+  .map((e) => e.trim().toLowerCase())
+  .filter(Boolean)
+
+/** Applies ADMIN_EMAILS to existing accounts (promotes listed, demotes the rest). */
+export async function syncAdmins(db: Database): Promise<void> {
+  if (!ADMIN_EMAILS.length) return
+  await db.run(
+    `UPDATE users SET is_admin = (lower(email) = ANY(string_to_array(?, ',')))
+      WHERE is_admin IS DISTINCT FROM (lower(email) = ANY(string_to_array(?, ',')))`,
+    [ADMIN_EMAILS.join(','), ADMIN_EMAILS.join(',')],
+  )
+}
+
+/** Creates the account and its empty PDI profile (admin per ADMIN_EMAILS). */
 export async function createUser(
   db: Database,
   input: { email: string; nome: string; senha: string },
@@ -33,9 +50,13 @@ export async function createUser(
   const hash = await hashPassword(input.senha)
   await db.tx([
     {
-      sql: `INSERT INTO users (id, email, nome, password_hash, is_admin)
-            VALUES (?, ?, ?, ?, NOT EXISTS (SELECT 1 FROM users))`,
-      bind: [id, email, input.nome.trim(), hash],
+      sql: ADMIN_EMAILS.length
+        ? `INSERT INTO users (id, email, nome, password_hash, is_admin) VALUES (?, ?, ?, ?, ?)`
+        : `INSERT INTO users (id, email, nome, password_hash, is_admin)
+           VALUES (?, ?, ?, ?, NOT EXISTS (SELECT 1 FROM users))`,
+      bind: ADMIN_EMAILS.length
+        ? [id, email, input.nome.trim(), hash, ADMIN_EMAILS.includes(email)]
+        : [id, email, input.nome.trim(), hash],
     },
     {
       sql: 'INSERT INTO perfil (user_id, nome, email) VALUES (?, ?, ?)',

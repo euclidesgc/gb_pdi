@@ -1,6 +1,6 @@
 import { serve } from '@hono/node-server'
 import { createApp } from './app'
-import { purgeExpiredSessions } from './auth/users'
+import { purgeExpiredSessions, syncAdmins } from './auth/users'
 import { PgDatabase } from './db/PgDatabase'
 import { runMigrations } from './db/migrations'
 import { ensureCatalogSeeded } from './seed/ensureSeeded'
@@ -20,6 +20,7 @@ const applied = await runMigrations(db)
 console.log(`[db] migrations aplicadas: ${applied}`)
 await ensureCatalogSeeded(db)
 await purgeExpiredSessions(db)
+await syncAdmins(db)
 
 const app = createApp({
   db,
