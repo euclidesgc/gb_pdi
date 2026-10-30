@@ -1,32 +1,163 @@
-# React + TypeScript + Vite
+# GB PDI
 
-This template provides a minimal setup to get React working in Vite with HMR and some Oxlint rules.
+Plano de Desenvolvimento Individual: cada pessoa escolhe a carreira e o nível, faz a
+auto-avaliação das habilidades esperadas e monta o plano de desenvolvimento (objetivos,
+ações, campo de forças, trilha de aprendizado e diário de evolução). A área `/admin`
+mantém o catálogo compartilhado (áreas, níveis, competências, matriz de habilidades,
+certificações e modelos de trilha) e os usuários.
 
-Currently, two official plugins are available:
+Agentes de IA também podem preencher o PDI pelo [servidor MCP](#servidor-mcp-agentes-de-ia).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## Stack
 
-## React Compiler
+- **Front-end:** React 19 + Vite + Tailwind CSS, PWA (`src/`).
+- **API:** Hono em Node 24 (`server/`), um único processo serve o SPA, a API (`/api`) e
+  o MCP (`/mcp`).
+- **Banco:** PostgreSQL. As migrações rodam ao subir a API (`server/db/migrations.ts`) e o
+  catálogo é semeado na primeira vez (`server/seed/`).
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Rodar localmente
 
-## Expanding the Oxlint configuration
+Pré-requisitos: Node 24 e um PostgreSQL acessível.
 
-If you are developing a production application, we recommend enabling type-aware lint rules by installing `oxlint-tsgolint` and editing `.oxlintrc.json`:
+```bash
+npm install
+```
+
+Crie um `.env.local` (não versionado) com pelo menos a conexão do banco:
+
+```dotenv
+DATABASE_URL=postgres://usuario@127.0.0.1:5432/gbpdi
+APP_URL=http://localhost:5173
+```
+
+Suba a API (porta 3000) e o front-end (porta 5173) em terminais separados:
+
+```bash
+npm run dev:api
+```
+
+```bash
+npm run dev
+```
+
+O Vite faz proxy de `/api` e `/mcp` para a API. Sem `ADMIN_EMAILS`, a primeira conta
+criada vira administradora.
+
+### Variáveis de ambiente
+
+| Variável | Uso |
+| --- | --- |
+| `DATABASE_URL` | Conexão com o PostgreSQL (obrigatória). |
+| `PORT` | Porta da API (padrão 3000; 8080 no container). |
+| `APP_URL` | URL pública do app, usada nos links dos e-mails. |
+| `ADMIN_EMAILS` | E-mails (separados por vírgula) sempre administradores. |
+| `SMTP_HOST`, `SMTP_PORT`, `SMTP_USER`, `SMTP_PASSWORD`, `SMTP_FROM` | Envio de e-mails (recuperação de senha, confirmação). Sem `SMTP_HOST`, em dev os e-mails saem no console. |
+
+Veja também o [`.env.example`](.env.example).
+
+### Scripts
+
+| Comando | O que faz |
+| --- | --- |
+| `npm run dev` | Front-end com Vite. |
+| `npm run dev:api` | API com recarga automática (lê `.env.local`). |
+| `npm run lint` | Oxlint. |
+| `npm run build` | Typecheck + build do SPA (`dist/`) e da API (`dist-server/`). |
+| `npm start` | Roda o build de produção. |
+
+## Deploy
+
+O [`Dockerfile`](Dockerfile) gera uma imagem que serve tudo na porta 8080. O ambiente de
+homologação roda no Coolify (`https://hml.gbpdi.duckdns.org`) e é publicado a cada push
+na `develop`. O CI (`.github/workflows/ci.yml`) roda lint e build em PRs para `develop` e
+`main`.
+
+## Servidor MCP (agentes de IA)
+
+O app expõe um servidor [MCP](https://modelcontextprotocol.io) em `/mcp` (Streamable
+HTTP). Com ele, um agente de IA (Claude Code, Cursor, Claude Desktop…) lê o catálogo e
+preenche o PDI da pessoa: perfil, auto-avaliação, objetivos, ações, campo de forças,
+trilha e diário.
+
+### 1. Gerar um token
+
+No app, abra **Perfil → Acesso por agentes de IA (MCP)**, dê um nome ao token e clique em
+**Gerar token**. O token (`gbpdi_…`) aparece **uma única vez**: copie e guarde como uma
+senha. Ele dá acesso apenas ao seu PDI; o catálogo é só leitura. Na mesma tela você vê o
+último uso de cada token e pode revogá-lo (até 10 por conta). Redefinir a senha pelo
+e-mail revoga todos os tokens.
+
+### 2. Conectar o agente
+
+Use a URL do ambiente (`https://hml.gbpdi.duckdns.org/mcp` em homologação,
+`http://localhost:3000/mcp` em dev) e envie o token no cabeçalho `Authorization`.
+
+**Claude Code:**
+
+```bash
+claude mcp add --transport http gb-pdi https://hml.gbpdi.duckdns.org/mcp --header "Authorization: Bearer gbpdi_SEU_TOKEN"
+```
+
+**Cursor e outros clientes com configuração em JSON** (ex.: `.cursor/mcp.json`):
 
 ```json
 {
-  "$schema": "./node_modules/oxlint/configuration_schema.json",
-  "plugins": ["react", "typescript", "oxc"],
-  "options": {
-    "typeAware": true
-  },
-  "rules": {
-    "react/rules-of-hooks": "error",
-    "react/only-export-components": ["warn", { "allowConstantExport": true }]
+  "mcpServers": {
+    "gb-pdi": {
+      "url": "https://hml.gbpdi.duckdns.org/mcp",
+      "headers": { "Authorization": "Bearer gbpdi_SEU_TOKEN" }
+    }
   }
 }
 ```
 
-See the [Oxlint rules documentation](https://oxc.rs/docs/guide/usage/linter/rules) for the full list of rules and categories.
+**Claude Desktop** (via [`mcp-remote`](https://www.npmjs.com/package/mcp-remote), em
+`claude_desktop_config.json`):
+
+```json
+{
+  "mcpServers": {
+    "gb-pdi": {
+      "command": "npx",
+      "args": [
+        "mcp-remote",
+        "https://hml.gbpdi.duckdns.org/mcp",
+        "--header",
+        "Authorization: Bearer gbpdi_SEU_TOKEN"
+      ]
+    }
+  }
+}
+```
+
+> Os conectores personalizados do claude.ai (web) exigem OAuth, que este servidor ainda
+> não implementa. Por enquanto, use clientes que aceitam o cabeçalho `Authorization`.
+
+### 3. Usar
+
+Peça ao agente algo como *"Preencha meu PDI: sou dev pleno de engenharia de software e
+quero crescer em arquitetura"*. O servidor orienta o agente a consultar o PDI antes de
+gravar, seguir o fluxo perfil → auto-avaliação → objetivos → ações/trilha e confirmar com
+você antes de inventar dados ou excluir algo.
+
+| Ferramenta | O que faz |
+| --- | --- |
+| `ver_pdi` | Mostra o PDI completo. |
+| `listar_carreiras` | Lista áreas e níveis do catálogo. |
+| `listar_habilidades` | Habilidades esperadas da área × nível, com a nota atual. |
+| `buscar_recursos` | Certificações e modelos de trilha do catálogo. |
+| `atualizar_perfil` | Nome, propósito, área e nível. |
+| `avaliar_habilidades` | Auto-avaliação em lote (1–4; 0 limpa). |
+| `salvar_objetivo`, `salvar_acao`, `salvar_forca`, `salvar_item_trilha` | Criam (sem `id`) ou atualizam (com `id`, só os campos enviados). |
+| `registrar_diario` | Nova entrada no diário. |
+| `excluir_registro` | Exclui objetivo, ação, força, item de trilha ou entrada do diário. |
+
+Detalhes técnicos em [`docs/mcp.md`](docs/mcp.md).
+
+## Documentação
+
+- [`docs/mcp.md`](docs/mcp.md) — servidor MCP.
+- [`docs/plano-matriz-habilidades.md`](docs/plano-matriz-habilidades.md) — modelo de
+  habilidades, auto-avaliação e plano de desenvolvimento.
+- [`docs/leveling.md`](docs/leveling.md) — matriz de leveling de referência.
