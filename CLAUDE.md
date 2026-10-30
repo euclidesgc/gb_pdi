@@ -25,9 +25,12 @@ Regras:
 
 ## Rodando localmente
 
-- `npm run dev:api` sobe a API em `:3000` (lê `DATABASE_URL` de `.env.local`); `npm run dev` sobe o Vite em `:5173` com proxy de `/api`.
+- O desenvolvimento local usa um Postgres próprio do projeto (`.local-db/`, porta 54329), nunca o banco de hml.
+- VS Code: o compound **GB PDI (banco + API + front)** em `.vscode/launch.json` sobe banco, API (`:3000`) e Vite (`:5173`) e abre o Chrome; encerrar a sessão derruba tudo, inclusive o banco. Não deixe serviços rodando à toa.
+- Terminal: `npm run db:start`, `npm run dev:api`, `npm run dev` e, ao terminar, `npm run db:stop` (`npm run db:reset` apaga os dados locais).
+- A API lê `.env.development` (versionado, sem segredos) e depois `.env.local` (não versionado), que sobrescreve.
 - Sem SMTP configurado, os e-mails são impressos no console da API.
-- `.env` e `.env.local` têm segredos e não são versionados; `.env.example` lista as chaves.
+- `.env` e `.env.local` podem ter segredos e não são versionados; `.env.example` lista as chaves.
 
 ## Banco de dados
 
