@@ -304,6 +304,39 @@ export const MIGRATIONS: Migration[] = [
   },
   {
     version: 6,
+    name: 'diario_vinculos',
+    sql: /* sql */ `
+      -- Vínculos N:N de uma entrada do diário com objetivos, ações do plano e
+      -- itens da trilha. Somem junto com o item vinculado; a entrada fica.
+      CREATE TABLE diario_objetivos (
+        diario_id TEXT NOT NULL REFERENCES diario(id) ON DELETE CASCADE,
+        objetivo_id TEXT NOT NULL REFERENCES objetivos(id) ON DELETE CASCADE,
+        PRIMARY KEY (diario_id, objetivo_id)
+      );
+      CREATE INDEX idx_diario_objetivos_obj ON diario_objetivos(objetivo_id);
+
+      CREATE TABLE diario_acoes (
+        diario_id TEXT NOT NULL REFERENCES diario(id) ON DELETE CASCADE,
+        acao_id TEXT NOT NULL REFERENCES acoes(id) ON DELETE CASCADE,
+        PRIMARY KEY (diario_id, acao_id)
+      );
+      CREATE INDEX idx_diario_acoes_acao ON diario_acoes(acao_id);
+
+      CREATE TABLE diario_trilha (
+        diario_id TEXT NOT NULL REFERENCES diario(id) ON DELETE CASCADE,
+        trilha_item_id TEXT NOT NULL REFERENCES trilha_itens(id) ON DELETE CASCADE,
+        PRIMARY KEY (diario_id, trilha_item_id)
+      );
+      CREATE INDEX idx_diario_trilha_item ON diario_trilha(trilha_item_id);
+
+      -- O vínculo único com objetivo (nunca usado pela UI) vira N:N.
+      INSERT INTO diario_objetivos (diario_id, objetivo_id)
+        SELECT id, objetivo_id FROM diario WHERE objetivo_id IS NOT NULL;
+      ALTER TABLE diario DROP COLUMN objetivo_id;
+    `,
+  },
+  {
+    version: 7,
     name: 'api_tokens',
     sql: /* sql */ `
       -- Tokens pessoais de acesso (agentes de IA via MCP). Guarda só o SHA-256 do

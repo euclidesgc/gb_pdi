@@ -18,31 +18,40 @@ Agentes de IA também podem preencher o PDI pelo [servidor MCP](#servidor-mcp-ag
 
 ## Rodar localmente
 
-Pré-requisitos: Node 24 e um PostgreSQL acessível.
+Pré-requisitos: Node 24, Postgres 16 (`brew install postgresql@16`; não precisa deixar
+como serviço) e as dependências instaladas com `npm ci`.
+
+### Pelo VS Code (um comando só)
+
+Em **Run and Debug**, escolha **GB PDI (banco + API + front)** e aperte F5. Isso:
+
+1. sobe o Postgres local (na primeira vez cria o banco em `.local-db/`);
+2. sobe a API em `:3000` (aplica as migrations e semeia o catálogo) e o front em `:5173`,
+   os dois com debugger;
+3. abre o Chrome em http://localhost:5173 quando o front responder.
+
+Parar a sessão (Shift+F5), parar qualquer uma das partes ou fechar o Chrome encerra
+**tudo**, inclusive o Postgres. Nada fica rodando em segundo plano.
+
+### Pelo terminal
 
 ```bash
-npm install
+npm run db:start   # sobe o Postgres local
+npm run dev:api    # API em :3000
+npm run dev        # front em :5173
+npm run db:stop    # ao terminar
 ```
 
-Crie um `.env.local` (não versionado) com pelo menos a conexão do banco:
+`npm run db:reset` apaga os dados locais (o próximo start cria um banco novo).
 
-```dotenv
-DATABASE_URL=postgres://usuario@127.0.0.1:5432/gbpdi
-APP_URL=http://localhost:5173
-```
+### Configuração
 
-Suba a API (porta 3000) e o front-end (porta 5173) em terminais separados:
-
-```bash
-npm run dev:api
-```
-
-```bash
-npm run dev
-```
-
-O Vite faz proxy de `/api` e `/mcp` para a API. Sem `ADMIN_EMAILS`, a primeira conta
-criada vira administradora.
+- `.env.development` (versionado, sem segredos) aponta a API para o banco local.
+- Para sobrescrever algo na sua máquina, crie um `.env.local` (não versionado), por
+  exemplo com `SMTP_*` para testar e-mails de verdade. Sem SMTP, os e-mails são impressos
+  no console da API.
+- O primeiro usuário cadastrado vira admin quando `ADMIN_EMAILS` não está definido.
+- O Vite faz proxy de `/api` e `/mcp` para a API.
 
 ### Variáveis de ambiente
 
@@ -61,7 +70,8 @@ Veja também o [`.env.example`](.env.example).
 | Comando | O que faz |
 | --- | --- |
 | `npm run dev` | Front-end com Vite. |
-| `npm run dev:api` | API com recarga automática (lê `.env.local`). |
+| `npm run dev:api` | API com recarga automática (lê `.env.development` e `.env.local`). |
+| `npm run db:start` / `db:stop` / `db:reset` | Sobe, derruba ou apaga o Postgres local (`scripts/dev-db.sh`). |
 | `npm run lint` | Oxlint. |
 | `npm run build` | Typecheck + build do SPA (`dist/`) e da API (`dist-server/`). |
 | `npm start` | Roda o build de produção. |

@@ -7,3 +7,4 @@ dist
 *.log
 dist-server
 .env.local
+.env.development

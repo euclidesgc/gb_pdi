@@ -462,25 +462,46 @@ export function createMcpServer(db: Database, user: AuthUser): McpServer {
       title: 'Registrar no diário',
       description:
         'Adiciona uma entrada ao diário de evolução (texto em Markdown), opcionalmente ' +
-        'vinculada a um objetivo e a habilidades do plano.',
+        'vinculada a objetivos, ações do plano, itens da trilha e habilidades em ' +
+        'desenvolvimento (ids de ver_pdi e listar_habilidades).',
       inputSchema: {
         texto: z.string().trim().min(1).max(20000),
         data: dataIso.optional().describe('Padrão: hoje'),
-        objetivoId: z.string().nullable().optional(),
+        objetivoIds: z.array(z.string()).max(50).optional(),
+        acaoIds: z.array(z.string()).max(50).optional(),
+        trilhaItemIds: z.array(z.string()).max(50).optional(),
         habilidadeIds: z.array(z.string()).max(50).optional(),
       },
       annotations: escrita,
     },
-    async ({ texto, data, objetivoId, habilidadeIds }) => {
-      if (objetivoId && !(await pdi.listObjetivos()).some((o) => o.id === objetivoId)) {
-        return fail(`Objetivo "${objetivoId}" não encontrado.`)
-      }
+    async ({ texto, data, objetivoIds = [], acaoIds = [], trilhaItemIds = [], habilidadeIds = [] }) => {
+      // The repository silently skips unknown links; tell the agent instead.
+      const [objetivos, acoes, trilha, habilidades] = await Promise.all([
+        pdi.listObjetivos(),
+        pdi.listAcoes(),
+        pdi.listTrilhaItens(),
+        catalog.listHabilidades(),
+      ])
+      const faltando = (ids: string[], existentes: Array<{ id: string }>) =>
+        ids.filter((id) => !existentes.some((e) => e.id === id))
+      const erros = [
+        ['objetivos', faltando(objetivoIds, objetivos)],
+        ['ações', faltando(acaoIds, acoes)],
+        ['itens de trilha', faltando(trilhaItemIds, trilha)],
+        ['habilidades', faltando(habilidadeIds, habilidades)],
+      ] as const
+      const msg = erros
+        .filter(([, ids]) => ids.length)
+        .map(([nome, ids]) => `${nome} inexistentes: ${ids.join(', ')}`)
+      if (msg.length) return fail(`${msg.join('; ')}. Nada foi gravado.`)
       const entry: DiarioEntry = {
         id: newId(),
         data: data ?? hoje(),
         texto,
-        objetivoId: objetivoId ?? null,
-        habilidadeIds: habilidadeIds ?? [],
+        objetivoIds,
+        acaoIds,
+        trilhaItemIds,
+        habilidadeIds,
       }
       await pdi.addDiario(entry)
       return ok({ entrada: entry })

@@ -54,7 +54,7 @@ Em dev, a API responde em `http://localhost:3000/mcp` (o Vite também faz proxy 
 | `atualizar_perfil` | Nome, propósito, área, nível, assistente concluído (campos omitidos ficam como estão). |
 | `avaliar_habilidades` | Notas 1–4 (0 limpa) em lote; valida os ids antes de gravar. |
 | `salvar_objetivo` / `salvar_acao` / `salvar_forca` / `salvar_item_trilha` | Sem `id` cria; com `id` atualiza só os campos enviados. |
-| `registrar_diario` | Nova entrada (Markdown), com vínculo opcional a objetivo e habilidades. |
+| `registrar_diario` | Nova entrada (Markdown), com vínculos opcionais a objetivos, ações, itens da trilha e habilidades. |
 | `excluir_registro` | Exclui objetivo, ação, força, item de trilha ou entrada do diário (marcada como destrutiva). |
 
 O servidor envia instruções ao agente com o fluxo sugerido (ver o PDI antes de gravar,

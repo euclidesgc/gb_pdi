@@ -90,8 +90,11 @@ export interface DiarioEntry {
   data: string
   /** Entry body, written in Markdown. */
   texto: string
-  objetivoId: string | null
-  /** Plan items (habilidades) this entry is linked to (N:N). */
+  /** Links (N:N) to the user's objetivos, plan ações and trilha items. */
+  objetivoIds: string[]
+  acaoIds: string[]
+  trilhaItemIds: string[]
+  /** Habilidades in development (gaps from the auto-avaliação), N:N. */
   habilidadeIds: string[]
 }
 
