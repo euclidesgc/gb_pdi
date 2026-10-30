@@ -33,7 +33,7 @@ export interface CatalogCounts {
 
 /**
  * Reference-data repository. The /admin screens depend only on this interface.
- * Swapping SQLite for a remote API later means a new implementation here.
+ * The client calls it over HTTP; writes require an admin account.
  */
 export interface CatalogRepository {
   // Áreas

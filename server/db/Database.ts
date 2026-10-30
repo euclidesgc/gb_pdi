@@ -1,14 +1,12 @@
 /**
- * Low-level database port. The whole app talks to persistence through this
- * interface (and the repository ports built on top of it), never to a concrete
- * SQL engine. Swapping SQLite for an HTTP API or Firestore later means providing
- * a new implementation of these ports — no changes to feature code.
+ * Low-level database port used by the server repositories. Queries use `?`
+ * placeholders; the Postgres implementation rewrites them to `$1, $2, …`.
  */
-export type SqlValue = string | number | null | Uint8Array
+export type SqlValue = string | number | boolean | null
 
-export type SqlBind = SqlValue[] | Record<string, SqlValue>
+export type SqlBind = SqlValue[]
 
-export type Row = Record<string, SqlValue>
+export type Row = Record<string, unknown>
 
 export interface Database {
   /** Run a mutation (INSERT/UPDATE/DELETE/DDL). Returns affected row count. */
@@ -17,7 +15,7 @@ export interface Database {
   all<T extends Row = Row>(sql: string, bind?: SqlBind): Promise<T[]>
   /** Select the first row, or undefined. */
   get<T extends Row = Row>(sql: string, bind?: SqlBind): Promise<T | undefined>
-  /** Execute a multi-statement SQL script (used by migrations/seed). */
+  /** Execute a multi-statement SQL script without binds (migrations). */
   execScript(sql: string): Promise<void>
   /** Run a set of mutations atomically (single transaction). */
   tx(statements: Array<{ sql: string; bind?: SqlBind }>): Promise<void>

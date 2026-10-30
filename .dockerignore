@@ -5,3 +5,5 @@ dist
 .code-review-graph
 .env
 *.log
+dist-server
+.env.local

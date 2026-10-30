@@ -11,16 +11,12 @@ import type {
   TrilhaTipo,
 } from '@/domain/catalog'
 import { slugify } from '@/lib/id'
+import { readFile } from 'node:fs/promises'
+import path from 'node:path'
 
-// Raw catalog extracted from the original app bundle. Loaded as separate assets
-// (via ?url + fetch) so these ~900 KB of JSON stay out of the main bundle and
-// out of the TypeScript type-checker; they are fetched only when seeding.
-import areasUrl from './raw/areas.json?url'
-import niveisUrl from './raw/niveis.json?url'
-import competenciasUrl from './raw/competencias.json?url'
-import matrizUrl from './raw/matriz.json?url'
-import certificacoesUrl from './raw/certificacoes.json?url'
-import trilhaUrl from './raw/trilha_templates.json?url'
+// Raw catalog extracted from the original app bundle (~900 KB of JSON). Read
+// from disk only when seeding; SEED_DIR overrides the location.
+const SEED_DIR = process.env.SEED_DIR ?? path.resolve(process.cwd(), 'server/seed/raw')
 
 interface RawArea {
   key: string
@@ -107,21 +103,19 @@ function prettify(key: string): string {
     .join(' ')
 }
 
-async function loadJson<T>(url: string): Promise<T> {
-  const res = await fetch(url)
-  if (!res.ok) throw new Error(`Falha ao carregar seed: ${url} (${res.status})`)
-  return (await res.json()) as T
+async function loadJson<T>(file: string): Promise<T> {
+  return JSON.parse(await readFile(path.join(SEED_DIR, file), 'utf8')) as T
 }
 
 /** Build the catalog seed from the extracted original-app data. */
 export async function buildCatalogSeed(): Promise<CatalogSeedData> {
   const [areasRaw, niveisRaw, compRaw, matrizRaw, certRaw, trilhaRaw] = await Promise.all([
-    loadJson<RawArea[]>(areasUrl),
-    loadJson<RawNivel[]>(niveisUrl),
-    loadJson<RawComp[]>(competenciasUrl),
-    loadJson<RawMatriz[]>(matrizUrl),
-    loadJson<RawCert[]>(certificacoesUrl),
-    loadJson<RawTrilha[]>(trilhaUrl),
+    loadJson<RawArea[]>('areas.json'),
+    loadJson<RawNivel[]>('niveis.json'),
+    loadJson<RawComp[]>('competencias.json'),
+    loadJson<RawMatriz[]>('matriz.json'),
+    loadJson<RawCert[]>('certificacoes.json'),
+    loadJson<RawTrilha[]>('trilha_templates.json'),
   ])
 
   const areas: Area[] = areasRaw.map((a, i) => ({

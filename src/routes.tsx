@@ -3,6 +3,8 @@ import { createBrowserRouter, Navigate } from 'react-router-dom'
 import { AppLayout } from '@/components/layout/AppLayout'
 import { AdminLayout } from '@/components/layout/AdminLayout'
 import { Home } from '@/pages/Home'
+import { Login } from '@/pages/Login'
+import { RequireAdmin, RequireAuth } from '@/auth/guards'
 import { AppIndex } from '@/pages/app/AppIndex'
 
 // Feature screens are code-split so the initial load stays light (Recharts,
@@ -48,9 +50,14 @@ const TrilhaTemplatesAdmin = lazy(() =>
 
 export const router = createBrowserRouter([
   { path: '/', element: <Home /> },
+  { path: '/login', element: <Login /> },
   {
     path: '/app',
-    element: <AppLayout />,
+    element: (
+      <RequireAuth>
+        <AppLayout />
+      </RequireAuth>
+    ),
     children: [
       { index: true, element: <AppIndex /> },
       { path: 'wizard', element: <Wizard /> },
@@ -68,7 +75,11 @@ export const router = createBrowserRouter([
   },
   {
     path: '/admin',
-    element: <AdminLayout />,
+    element: (
+      <RequireAdmin>
+        <AdminLayout />
+      </RequireAdmin>
+    ),
     children: [
       { index: true, element: <AreasAdmin /> },
       { path: 'niveis', element: <NiveisAdmin /> },

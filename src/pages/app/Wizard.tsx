@@ -72,7 +72,7 @@ export function Wizard() {
         <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Monte seu PDI</h1>
       </div>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Alguns passos rápidos. Tudo fica salvo só neste dispositivo.
+        Alguns passos rápidos. Tudo fica salvo na sua conta.
       </p>
 
       {/* progress */}

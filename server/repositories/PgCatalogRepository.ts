@@ -1,4 +1,4 @@
-import type { Database, SqlBind } from '@/data/ports/Database'
+import type { Database, SqlBind } from '../db/Database'
 import type {
   CatalogCounts,
   CatalogRepository,
@@ -29,7 +29,7 @@ function parseArr(v: unknown): string[] {
   }
 }
 
-export class SqliteCatalogRepository implements CatalogRepository {
+export class PgCatalogRepository implements CatalogRepository {
   private db: Database
 
   constructor(db: Database) {
@@ -107,14 +107,14 @@ export class SqliteCatalogRepository implements CatalogRepository {
     nivelId?: string
   }): Promise<MatrizItem[]> {
     const where: string[] = []
-    const bind: SqlBind = []
+    const bind: string[] = []
     if (filter?.areaId) {
       where.push('area_id = ?')
-      ;(bind as string[]).push(filter.areaId)
+      bind.push(filter.areaId)
     }
     if (filter?.nivelId) {
       where.push('nivel_id = ?')
-      ;(bind as string[]).push(filter.nivelId)
+      bind.push(filter.nivelId)
     }
     const sql =
       'SELECT * FROM matriz_competencias' +
@@ -326,12 +326,12 @@ export class SqliteCatalogRepository implements CatalogRepository {
   // ---- Seed / bulk ----
   async isEmpty(): Promise<boolean> {
     const row = await this.db.get<{ n: number }>('SELECT COUNT(*) AS n FROM areas')
-    return (row?.n ?? 0) === 0
+    return Number(row?.n ?? 0) === 0
   }
   async counts(): Promise<CatalogCounts> {
     const one = async (table: string) => {
       const r = await this.db.get<{ n: number }>(`SELECT COUNT(*) AS n FROM ${table}`)
-      return r?.n ?? 0
+      return Number(r?.n ?? 0)
     }
     return {
       areas: await one('areas'),

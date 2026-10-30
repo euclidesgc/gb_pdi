@@ -15,8 +15,8 @@ import type {
 } from '@/domain/pdi'
 
 /**
- * The user's own PDI. Single local profile, no auth. Feature screens depend only
- * on this interface; the SQLite implementation is swappable for a remote backend.
+ * The signed-in user's own PDI. Feature screens depend only on this interface;
+ * the client calls it over HTTP and the server scopes every call to the session's user.
  */
 export interface PdiRepository {
   // Perfil (singleton)

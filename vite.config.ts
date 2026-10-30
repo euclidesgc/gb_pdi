@@ -12,15 +12,16 @@ export default defineConfig({
     VitePWA({
       registerType: 'autoUpdate',
       workbox: {
-        // Precache the app shell + the SQLite wasm/worker and seed JSON so the
-        // PWA works fully offline (OPFS data already lives on the device).
-        globPatterns: ['**/*.{js,css,html,svg,wasm,json}'],
-        maximumFileSizeToCacheInBytes: 6 * 1024 * 1024,
+        // Precache the app shell. Data lives in the API (/api), which must
+        // always go to the network — never served from the SW cache or
+        // answered with the SPA's index.html.
+        globPatterns: ['**/*.{js,css,html,svg}'],
+        navigateFallbackDenylist: [/^\/api\//],
       },
       manifest: {
         name: 'GB PDI',
         short_name: 'GB PDI',
-        description: 'Plano de Desenvolvimento Individual — local e sem login',
+        description: 'Plano de Desenvolvimento Individual',
         theme_color: '#4f46e5',
         background_color: '#ffffff',
         display: 'standalone',
@@ -36,11 +37,10 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
-  // sqlite-wasm ships its own wasm + worker glue; keep it out of the dep pre-bundler.
-  optimizeDeps: {
-    exclude: ['@sqlite.org/sqlite-wasm'],
-  },
-  worker: {
-    format: 'es',
+  server: {
+    // `npm run dev:api` serves the API on :3000; the SPA calls it same-origin.
+    proxy: {
+      '/api': 'http://localhost:3000',
+    },
   },
 })

@@ -89,7 +89,7 @@ export function Perfil() {
         Perfil / Configuração do PDI
       </h1>
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-        Seus dados ficam só neste dispositivo. Sem login.
+        Seus dados ficam salvos na sua conta.
       </p>
 
       <Card className="mt-6 space-y-4">
@@ -157,8 +157,8 @@ export function Perfil() {
           Dados e privacidade
         </h2>
         <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
-          Tudo fica neste dispositivo (SQLite local). Exporte um backup ou leve seus dados para
-          outro navegador quando quiser.
+          Seu PDI fica salvo na sua conta. Exporte um backup ou importe dados de uma versão
+          anterior do app (que guardava tudo no navegador) quando quiser.
         </p>
         <div className="mt-4 flex flex-wrap items-center gap-3">
           <Button variant="secondary" onClick={exportar}>

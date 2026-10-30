@@ -1,5 +1,5 @@
 /**
- * User PDI domain — the person's own plan. Single local profile, no auth.
+ * User PDI domain — the person's own plan, one per account.
  * Skills/objectives may reference catalog entries (competencia/area/nivel) but
  * always carry their own text so the PDI stands on its own.
  */
