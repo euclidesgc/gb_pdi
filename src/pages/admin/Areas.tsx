@@ -1,16 +1,27 @@
 import { useCallback } from 'react'
-import { CrudPage, type Column } from '@/components/admin/CrudPage'
+import { CrudPage } from '@/components/admin/CrudPage'
+import type { DataTableColumn } from '@/components/ui/DataTable'
+import { idColumn } from '@/components/ui/idColumn'
 import { CatalogOverview } from '@/components/admin/CatalogOverview'
 import { Field, TextInput } from '@/components/ui/controls'
 import { useCatalogRepository } from '@/data/repositories'
 import { newId } from '@/lib/id'
 import type { Area } from '@/domain/catalog'
 
-const columns: Column<Area>[] = [
-  { header: 'Nome', cell: (a) => <span className="font-medium">{a.nome}</span> },
-  { header: 'Área', cell: (a) => a.familia ?? '—' },
-  { header: 'Ordem', cell: (a) => a.ordem, className: 'w-20' },
+const columns: DataTableColumn<Area>[] = [
+  idColumn(),
+  {
+    id: 'nome',
+    header: 'Nome',
+    cell: (a) => <span className="font-medium">{a.nome}</span>,
+    sortValue: (a) => a.nome,
+    defaultSort: 'asc',
+  },
+  { id: 'familia', header: 'Área', cell: (a) => a.familia ?? '—', sortValue: (a) => a.familia },
 ]
+
+// The order of carreiras in the app still comes from `ordem`: new ones go to the end.
+const nextOrdem = (areas: Area[]) => Math.max(0, ...areas.map((a) => a.ordem)) + 1
 
 export function AreasAdmin() {
   const repo = useCatalogRepository()
@@ -25,7 +36,13 @@ export function AreasAdmin() {
       addLabel="Nova carreira"
       columns={columns}
       load={load}
-      blank={() => ({ id: newId(), nome: '', familia: null, descricao: null, ordem: 0 })}
+      blank={(areas) => ({
+        id: newId(),
+        nome: '',
+        familia: null,
+        descricao: null,
+        ordem: nextOrdem(areas),
+      })}
       labelOf={(a) => a.nome}
       validate={(a) => (a.nome.trim() ? null : 'Informe o nome da carreira.')}
       save={(a) => repo.upsertArea(a)}
@@ -44,13 +61,6 @@ export function AreasAdmin() {
               value={draft.familia ?? ''}
               onChange={(e) => update({ familia: e.target.value || null })}
               placeholder="Ex.: Tecnologia"
-            />
-          </Field>
-          <Field label="Ordem">
-            <TextInput
-              type="number"
-              value={String(draft.ordem)}
-              onChange={(e) => update({ ordem: Number(e.target.value) || 0 })}
             />
           </Field>
         </>

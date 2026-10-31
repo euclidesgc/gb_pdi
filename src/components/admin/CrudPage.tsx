@@ -1,21 +1,17 @@
 import { useCallback, useEffect, useMemo, useState, type ReactNode } from 'react'
 import { Pencil, Plus, Search, Trash2, X } from 'lucide-react'
-import { Button, Card, TextInput } from '@/components/ui/controls'
+import { Button, TextInput } from '@/components/ui/controls'
+import { DataTable, type DataTableColumn } from '@/components/ui/DataTable'
 
 const ROW_CAP = 300
-
-export interface Column<T> {
-  header: string
-  cell: (row: T) => ReactNode
-  className?: string
-}
 
 export interface CrudPageProps<T extends { id: string }> {
   title: string
   description?: string
-  columns: Column<T>[]
+  columns: DataTableColumn<T>[]
   load: () => Promise<T[]>
-  blank: () => T
+  /** A new, empty record. Receives the loaded rows (e.g. to pick the next `ordem`). */
+  blank: (rows: T[]) => T
   renderForm: (draft: T, update: (patch: Partial<T>) => void) => ReactNode
   save: (row: T) => Promise<void>
   remove: (id: string) => Promise<void>
@@ -41,7 +37,6 @@ export function CrudPage<T extends { id: string }>(props: CrudPageProps<T>) {
     if (!q) return items
     return items.filter((row) => props.labelOf(row).toLowerCase().includes(q))
   }, [items, query, props])
-  const visible = filtered.slice(0, ROW_CAP)
 
   const reload = useCallback(async () => {
     setLoading(true)
@@ -104,7 +99,7 @@ export function CrudPage<T extends { id: string }>(props: CrudPageProps<T>) {
         </div>
         <div className="flex items-center gap-2">
           {props.headerExtra}
-          <Button variant="primary" onClick={() => setEditing(props.blank())}>
+          <Button variant="primary" onClick={() => setEditing(props.blank(items))}>
             <Plus className="h-4 w-4" />
             {props.addLabel ?? 'Novo'}
           </Button>
@@ -127,73 +122,36 @@ export function CrudPage<T extends { id: string }>(props: CrudPageProps<T>) {
         />
       </div>
 
-      <Card className="mt-4 overflow-hidden p-0">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-200 bg-slate-50 text-xs font-semibold tracking-wide text-slate-500 uppercase dark:border-slate-700 dark:bg-slate-800/50 dark:text-slate-400">
-            <tr>
-              {props.columns.map((c, i) => (
-                <th key={i} className={`px-4 py-3 ${c.className ?? ''}`}>
-                  {c.header}
-                </th>
-              ))}
-              <th className="w-24 px-4 py-3 text-right">Ações</th>
-            </tr>
-          </thead>
-          <tbody>
-            {loading ? (
-              <tr>
-                <td colSpan={props.columns.length + 1} className="px-4 py-10 text-center text-slate-400">
-                  Carregando…
-                </td>
-              </tr>
-            ) : filtered.length === 0 ? (
-              <tr>
-                <td colSpan={props.columns.length + 1} className="px-4 py-10 text-center text-slate-400">
-                  {query ? 'Nenhum resultado para a busca.' : 'Nenhum registro ainda.'}
-                </td>
-              </tr>
-            ) : (
-              visible.map((row) => (
-                <tr
-                  key={row.id}
-                  className="border-b border-slate-100 last:border-0 hover:bg-slate-50 dark:border-slate-800 dark:hover:bg-slate-800/40"
-                >
-                  {props.columns.map((c, i) => (
-                    <td key={i} className={`px-4 py-3 text-slate-700 dark:text-slate-200 ${c.className ?? ''}`}>
-                      {c.cell(row)}
-                    </td>
-                  ))}
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0"
-                        aria-label="Editar"
-                        onClick={() => setEditing({ ...row })}
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="h-8 w-8 p-0 text-rose-500"
-                        aria-label="Excluir"
-                        onClick={() => setConfirmDel(row)}
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-        {filtered.length > ROW_CAP && (
-          <div className="border-t border-slate-100 px-4 py-2 text-center text-xs text-slate-400 dark:border-slate-800">
-            Mostrando {ROW_CAP} de {filtered.length}. Refine a busca para ver mais.
-          </div>
-        )}
-      </Card>
+      <div className="mt-4">
+        <DataTable<T>
+          columns={props.columns}
+          rows={filtered}
+          rowKey={(row) => row.id}
+          loading={loading}
+          emptyMessage={query ? 'Nenhum resultado para a busca.' : 'Nenhum registro ainda.'}
+          limit={ROW_CAP}
+          actions={(row) => (
+            <>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0"
+                aria-label="Editar"
+                onClick={() => setEditing({ ...row })}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                className="h-8 w-8 p-0 text-rose-500"
+                aria-label="Excluir"
+                onClick={() => setConfirmDel(row)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </>
+          )}
+        />
+      </div>
 
       {editing && (
         <Modal onClose={() => setEditing(null)} title="Registro">
