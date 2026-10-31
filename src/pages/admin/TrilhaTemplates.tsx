@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CrudPage, type Column } from '@/components/admin/CrudPage'
+import { CrudPage } from '@/components/admin/CrudPage'
+import type { DataTableColumn } from '@/components/ui/DataTable'
+import { idColumn } from '@/components/ui/idColumn'
 import { CompetenciaPicker } from '@/components/admin/CompetenciaPicker'
 import type { Option } from '@/components/ui/Combobox'
 import { Field, Select, SelectItem, TextArea, TextInput } from '@/components/ui/controls'
@@ -18,18 +20,33 @@ const TIPOS: { value: TrilhaTipo; label: string }[] = [
 ]
 const tipoLabel = (t: TrilhaTipo) => TIPOS.find((x) => x.value === t)?.label ?? t
 
-const columns: Column<TrilhaTemplate>[] = [
+const columns: DataTableColumn<TrilhaTemplate>[] = [
+  idColumn(),
   {
+    id: 'tipo',
     header: 'Tipo',
     cell: (t) => (
       <span className="rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:bg-slate-700 dark:text-slate-300">
         {tipoLabel(t.tipo)}
       </span>
     ),
-    className: 'w-28',
+    sortValue: (t) => tipoLabel(t.tipo),
+    width: '8rem',
   },
-  { header: 'Título', cell: (t) => <span className="font-medium">{t.titulo}</span> },
-  { header: 'Duração', cell: (t) => t.duracao ?? '—', className: 'w-28' },
+  {
+    id: 'titulo',
+    header: 'Título',
+    cell: (t) => <span className="font-medium">{t.titulo}</span>,
+    sortValue: (t) => t.titulo,
+    defaultSort: 'asc',
+  },
+  {
+    id: 'duracao',
+    header: 'Duração',
+    cell: (t) => t.duracao ?? '—',
+    sortValue: (t) => t.duracao,
+    width: '8rem',
+  },
 ]
 
 const csvToList = (v: string) =>

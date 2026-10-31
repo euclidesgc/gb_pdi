@@ -1,14 +1,27 @@
 import { useCallback } from 'react'
-import { CrudPage, type Column } from '@/components/admin/CrudPage'
+import { CrudPage } from '@/components/admin/CrudPage'
+import type { DataTableColumn } from '@/components/ui/DataTable'
+import { idColumn } from '@/components/ui/idColumn'
 import { Field, TextArea, TextInput } from '@/components/ui/controls'
 import { useCatalogRepository } from '@/data/repositories'
 import { newId } from '@/lib/id'
 import type { NivelCarreira } from '@/domain/catalog'
 
-const columns: Column<NivelCarreira>[] = [
-  { header: 'Ordem', cell: (n) => n.ordem, className: 'w-20' },
-  { header: 'Nome', cell: (n) => <span className="font-medium">{n.nome}</span> },
-  { header: 'Descrição', cell: (n) => n.descricao ?? '—' },
+// Unsorted, the table keeps the API order: the levels' hierarchy (`ordem`).
+const columns: DataTableColumn<NivelCarreira>[] = [
+  idColumn(),
+  {
+    id: 'nome',
+    header: 'Nome',
+    cell: (n) => <span className="font-medium">{n.nome}</span>,
+    sortValue: (n) => n.nome,
+  },
+  {
+    id: 'descricao',
+    header: 'Descrição',
+    cell: (n) => n.descricao ?? '—',
+    sortValue: (n) => n.descricao,
+  },
 ]
 
 export function NiveisAdmin() {

@@ -2,7 +2,9 @@ import { useEffect, useState } from 'react'
 import { Lock, Search } from 'lucide-react'
 import { useAuth } from '@/auth/AuthProvider'
 import { FormMessage } from '@/components/auth/AuthScreen'
-import { Card, Select, SelectItem, TextInput } from '@/components/ui/controls'
+import { Select, SelectItem, TextInput } from '@/components/ui/controls'
+import { DataTable, type DataTableColumn } from '@/components/ui/DataTable'
+import { idColumn } from '@/components/ui/idColumn'
 import { apiFetch } from '@/data/http/api'
 import type { AdminUserRow, UserRole } from '@/domain/auth'
 
@@ -52,6 +54,75 @@ export function UsuariosAdmin() {
     }
   }
 
+  const columns: DataTableColumn<AdminUserRow>[] = [
+    idColumn(),
+    {
+      id: 'nome',
+      header: 'Nome',
+      cell: (r) => (
+        <span className="font-medium">
+          {r.nome || '—'}
+          {r.id === me?.id && (
+            <span className="ml-2 text-xs font-normal text-slate-400">(você)</span>
+          )}
+        </span>
+      ),
+      sortValue: (r) => r.nome,
+    },
+    {
+      id: 'email',
+      header: 'E-mail',
+      cell: (r) => (
+        <>
+          {r.email}
+          {!r.emailVerified && (
+            <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
+              não confirmado
+            </span>
+          )}
+        </>
+      ),
+      sortValue: (r) => r.email,
+    },
+    {
+      id: 'createdAt',
+      header: 'Desde',
+      cell: (r) => <span className="text-slate-500 dark:text-slate-400">{dataBr(r.createdAt)}</span>,
+      sortValue: (r) => r.createdAt,
+      sortType: 'date',
+      className: 'hidden sm:table-cell',
+    },
+    {
+      id: 'role',
+      header: 'Papel',
+      cell: (r) =>
+        r.roleLocked || r.id === me?.id ? (
+          <span
+            className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400"
+            title={
+              r.roleLocked
+                ? 'Definido em ADMIN_EMAILS no servidor'
+                : 'Você não pode mudar o seu próprio papel'
+            }
+          >
+            <Lock className="h-3.5 w-3.5" />
+            {ROLE_LABEL[r.role]}
+          </span>
+        ) : (
+          <Select
+            value={r.role}
+            onValueChange={(v) => void changeRole(r, v as UserRole)}
+            disabled={savingId === r.id}
+          >
+            <SelectItem value="user">{ROLE_LABEL.user}</SelectItem>
+            <SelectItem value="admin">{ROLE_LABEL.admin}</SelectItem>
+          </Select>
+        ),
+      sortValue: (r) => ROLE_LABEL[r.role],
+      width: '12rem',
+    },
+  ]
+
   return (
     <div className="mx-auto max-w-5xl">
       <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Usuários</h1>
@@ -77,75 +148,15 @@ export function UsuariosAdmin() {
         </div>
       )}
 
-      <Card className="mt-4 overflow-x-auto p-0">
-        <table className="w-full text-left text-sm">
-          <thead className="border-b border-slate-200 text-xs text-slate-500 uppercase dark:border-slate-700 dark:text-slate-400">
-            <tr>
-              <th className="px-4 py-3 font-semibold">Nome</th>
-              <th className="px-4 py-3 font-semibold">E-mail</th>
-              <th className="hidden px-4 py-3 font-semibold sm:table-cell">Desde</th>
-              <th className="w-48 px-4 py-3 font-semibold">Papel</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-            {rows.map((r) => {
-              const isMe = r.id === me?.id
-              const locked = r.roleLocked || isMe
-              return (
-                <tr key={r.id} className="text-slate-700 dark:text-slate-200">
-                  <td className="px-4 py-3 font-medium">
-                    {r.nome || '—'}
-                    {isMe && (
-                      <span className="ml-2 text-xs font-normal text-slate-400">(você)</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    {r.email}
-                    {!r.emailVerified && (
-                      <span className="ml-2 text-xs text-amber-600 dark:text-amber-400">
-                        não confirmado
-                      </span>
-                    )}
-                  </td>
-                  <td className="hidden px-4 py-3 text-slate-500 sm:table-cell dark:text-slate-400">
-                    {dataBr(r.createdAt)}
-                  </td>
-                  <td className="px-4 py-3">
-                    {locked ? (
-                      <span
-                        className="flex items-center gap-1.5 text-slate-500 dark:text-slate-400"
-                        title={
-                          r.roleLocked
-                            ? 'Definido em ADMIN_EMAILS no servidor'
-                            : 'Você não pode mudar o seu próprio papel'
-                        }
-                      >
-                        <Lock className="h-3.5 w-3.5" />
-                        {ROLE_LABEL[r.role]}
-                      </span>
-                    ) : (
-                      <Select
-                        value={r.role}
-                        onValueChange={(v) => void changeRole(r, v as UserRole)}
-                        disabled={savingId === r.id}
-                      >
-                        <SelectItem value="user">{ROLE_LABEL.user}</SelectItem>
-                        <SelectItem value="admin">{ROLE_LABEL.admin}</SelectItem>
-                      </Select>
-                    )}
-                  </td>
-                </tr>
-              )
-            })}
-          </tbody>
-        </table>
-        {!loading && rows.length === 0 && (
-          <p className="px-4 py-8 text-center text-sm text-slate-400">Nenhum usuário encontrado.</p>
-        )}
-        {loading && rows.length === 0 && (
-          <p className="px-4 py-8 text-center text-sm text-slate-400">Carregando…</p>
-        )}
-      </Card>
+      <div className="mt-4">
+        <DataTable<AdminUserRow>
+          columns={columns}
+          rows={rows}
+          rowKey={(r) => r.id}
+          loading={loading}
+          emptyMessage="Nenhum usuário encontrado."
+        />
+      </div>
       {rows.length === 50 && (
         <p className="mt-2 text-xs text-slate-400">
           Mostrando os 50 mais recentes. Refine a busca.

@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
-import { CrudPage, type Column } from '@/components/admin/CrudPage'
+import { CrudPage } from '@/components/admin/CrudPage'
+import type { DataTableColumn } from '@/components/ui/DataTable'
+import { idColumn } from '@/components/ui/idColumn'
 import { MultiCombobox } from '@/components/ui/MultiCombobox'
 import type { Option } from '@/components/ui/Combobox'
 import { Field, TextInput } from '@/components/ui/controls'
@@ -7,11 +9,24 @@ import { useCatalogRepository } from '@/data/repositories'
 import { newId } from '@/lib/id'
 import type { Certificacao } from '@/domain/catalog'
 
-const columns: Column<Certificacao>[] = [
-  { header: 'Nome', cell: (c) => <span className="font-medium">{c.nome}</span> },
-  { header: 'Provedor', cell: (c) => c.provedor ?? '—' },
-  { header: 'Categoria', cell: (c) => c.categoria ?? '—' },
+const columns: DataTableColumn<Certificacao>[] = [
+  idColumn(),
   {
+    id: 'nome',
+    header: 'Nome',
+    cell: (c) => <span className="font-medium">{c.nome}</span>,
+    sortValue: (c) => c.nome,
+    defaultSort: 'asc',
+  },
+  { id: 'provedor', header: 'Provedor', cell: (c) => c.provedor ?? '—', sortValue: (c) => c.provedor },
+  {
+    id: 'categoria',
+    header: 'Categoria',
+    cell: (c) => c.categoria ?? '—',
+    sortValue: (c) => c.categoria,
+  },
+  {
+    id: 'gratuita',
     header: 'Grátis',
     cell: (c) =>
       c.gratuita ? (
@@ -21,7 +36,9 @@ const columns: Column<Certificacao>[] = [
       ) : (
         '—'
       ),
-    className: 'w-20',
+    sortValue: (c) => (c.gratuita ? 1 : 0),
+    sortType: 'number',
+    width: '6rem',
   },
 ]
 

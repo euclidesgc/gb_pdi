@@ -1,13 +1,22 @@
 import { useCallback } from 'react'
-import { CrudPage, type Column } from '@/components/admin/CrudPage'
+import { CrudPage } from '@/components/admin/CrudPage'
+import type { DataTableColumn } from '@/components/ui/DataTable'
+import { idColumn } from '@/components/ui/idColumn'
 import { Field, Select, SelectItem, TextArea, TextInput } from '@/components/ui/controls'
 import { useCatalogRepository } from '@/data/repositories'
 import { newId } from '@/lib/id'
 import type { Competencia } from '@/domain/catalog'
 
-const columns: Column<Competencia>[] = [
-  { header: 'Nome', cell: (c) => <span className="font-medium">{c.nome}</span> },
+const columns: DataTableColumn<Competencia>[] = [
+  idColumn(),
   {
+    id: 'nome',
+    header: 'Nome',
+    cell: (c) => <span className="font-medium">{c.nome}</span>,
+    sortValue: (c) => c.nome,
+  },
+  {
+    id: 'tipo',
     header: 'Tipo',
     cell: (c) => (
       <span
@@ -20,7 +29,8 @@ const columns: Column<Competencia>[] = [
         {c.tipo === 'hard' ? 'Hard' : 'Soft'}
       </span>
     ),
-    className: 'w-24',
+    sortValue: (c) => c.tipo,
+    width: '7rem',
   },
 ]
 
