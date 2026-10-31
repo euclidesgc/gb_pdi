@@ -1,25 +1,30 @@
-import { useEffect, useMemo, useState, type KeyboardEvent, type ReactNode } from 'react'
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import {
   AlertCircle,
-  Eye,
+  CalendarDays,
   Goal,
   ListTodo,
   NotebookPen,
   Pencil,
+  Plus,
   Route as RouteIcon,
+  Search,
   Send,
   Sprout,
+  Star,
   Trash2,
   X,
   type LucideIcon,
 } from 'lucide-react'
-import { Button, Card, TextArea } from '@/components/ui/controls'
+import { Button, Card, TextInput } from '@/components/ui/controls'
+import { MarkdownEditor } from '@/components/ui/MarkdownEditor'
 import { cn } from '@/lib/cn'
 import { renderMarkdown } from '@/lib/markdown'
 import { useCatalogRepository, usePdiRepository } from '@/data/repositories'
 import { newId } from '@/lib/id'
 import { formatDateBr, todayIso } from '@/lib/pdiStats'
+import { diaRelativo, MODELOS_DIARIO, ontemIso } from '@/lib/diario'
 import type { Competencia, Habilidade } from '@/domain/catalog'
 import type { Acao, AcaoStatus, DiarioEntry, Objetivo, TrilhaItem } from '@/domain/pdi'
 
@@ -108,10 +113,17 @@ export function Diario() {
   const [trilha, setTrilha] = useState<TrilhaItem[]>([])
   const [entradas, setEntradas] = useState<DiarioEntry[]>([])
   const [texto, setTexto] = useState('')
+  const [data, setData] = useState(todayIso)
+  const [destaque, setDestaque] = useState(false)
+  /** Entrada sendo editada (null = nova entrada). */
+  const [editandoId, setEditandoId] = useState<string | null>(null)
+  const [confirmarExclusao, setConfirmarExclusao] = useState<string | null>(null)
   const [selec, setSelec] = useState<Selecao>(emptySelecao)
   const [tab, setTab] = useState<Kind>('objetivo')
-  const [preview, setPreview] = useState(false)
+  const [busca, setBusca] = useState('')
+  const [soDestaques, setSoDestaques] = useState(false)
   const [loading, setLoading] = useState(true)
+  const editorRef = useRef<HTMLDivElement>(null)
 
   const load = async () => {
     const p = await pdi.getPerfil()
@@ -225,27 +237,79 @@ export function Diario() {
       return { ...s, [kind]: n }
     })
 
+  const limparEditor = () => {
+    setTexto('')
+    setData(todayIso())
+    setDestaque(false)
+    setSelec(emptySelecao())
+    setEditandoId(null)
+  }
+
   const registrar = async () => {
     const t = texto.trim()
     if (!t) return
-    await pdi.addDiario({
-      id: newId(),
-      data: todayIso(),
+    const entry: DiarioEntry = {
+      id: editandoId ?? newId(),
+      data: data || todayIso(),
       texto: t,
       objetivoIds: [...selec.objetivo],
       acaoIds: [...selec.acao],
       trilhaItemIds: [...selec.trilha],
       habilidadeIds: [...selec.habilidade],
-    })
-    setTexto('')
-    setSelec(emptySelecao())
-    setPreview(false)
+      destaque,
+    }
+    if (editandoId) await pdi.updateDiario(entry)
+    else await pdi.addDiario(entry)
+    limparEditor()
     await load()
   }
   const remover = async (id: string) => {
     await pdi.deleteDiario(id)
+    if (editandoId === id) limparEditor()
+    setConfirmarExclusao(null)
     await load()
   }
+  const focarEditor = () =>
+    requestAnimationFrame(() => {
+      editorRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      editorRef.current?.querySelector('textarea')?.focus()
+    })
+  const editar = (e: DiarioEntry) => {
+    setEditandoId(e.id)
+    setTexto(e.texto)
+    setData(e.data)
+    setDestaque(Boolean(e.destaque))
+    setSelec({
+      objetivo: new Set(e.objetivoIds),
+      acao: new Set(e.acaoIds),
+      trilha: new Set(e.trilhaItemIds),
+      habilidade: new Set(e.habilidadeIds),
+    })
+    focarEditor()
+  }
+  const novaNoDia = (dia: string) => {
+    limparEditor()
+    setData(dia)
+    focarEditor()
+  }
+  const alternarDestaque = async (e: DiarioEntry) => {
+    await pdi.updateDiario({ ...e, destaque: !e.destaque })
+    await load()
+  }
+
+  /** Entradas filtradas e agrupadas por dia (a lista já vem do mais recente ao mais antigo). */
+  const dias = useMemo(() => {
+    const q = busca.trim().toLowerCase()
+    const grupos: { data: string; entradas: DiarioEntry[] }[] = []
+    for (const e of entradas) {
+      if (soDestaques && !e.destaque) continue
+      if (q && !e.texto.toLowerCase().includes(q)) continue
+      const ultimo = grupos[grupos.length - 1]
+      if (ultimo && ultimo.data === e.data) ultimo.entradas.push(e)
+      else grupos.push({ data: e.data, entradas: [e] })
+    }
+    return grupos
+  }, [entradas, busca, soDestaques])
 
   // Arrow keys move between tabs (WAI-ARIA tabs pattern).
   const onTabKey = (e: KeyboardEvent<HTMLButtonElement>) => {
@@ -275,73 +339,125 @@ export function Diario() {
       </p>
 
       {/* Editor */}
-      <Card className="mt-6">
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">Nova entrada</h3>
-          <button
-            type="button"
-            onClick={() => setPreview((v) => !v)}
-            disabled={!texto.trim()}
-            className="inline-flex items-center gap-1 text-xs font-medium text-slate-500 hover:text-indigo-600 disabled:opacity-40 dark:text-slate-400"
-          >
-            {preview ? <Pencil className="h-3.5 w-3.5" /> : <Eye className="h-3.5 w-3.5" />}
-            {preview ? 'Editar' : 'Pré-visualizar'}
-          </button>
-        </div>
-
-        {preview ? (
-          <div
-            className="markdown min-h-32 rounded-lg border border-slate-200 bg-slate-50 p-3 text-sm dark:border-slate-700 dark:bg-slate-800/50"
-            dangerouslySetInnerHTML={{ __html: renderMarkdown(texto) }}
-          />
-        ) : (
-          <TextArea
-            value={texto}
-            onChange={(e) => setTexto(e.target.value)}
-            placeholder="O que você avançou hoje? (Markdown suportado: **negrito**, listas, # títulos…)"
-            className="min-h-32"
-          />
-        )}
-
-        {totalSelec > 0 && (
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {TABS.flatMap((t) =>
-              [...selec[t.kind]].map((id) => (
-                <span
-                  key={`${t.kind}:${id}`}
+      <div ref={editorRef} className="scroll-mt-4">
+        <Card
+          className={cn(
+            'mt-6',
+            editandoId && 'border-indigo-300 ring-2 ring-indigo-100 dark:border-indigo-700 dark:ring-indigo-500/20',
+          )}
+        >
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+              {editandoId ? 'Editando entrada' : 'Nova entrada'}
+            </h3>
+            <div className="flex flex-wrap items-center gap-1.5">
+              <CalendarDays className="h-4 w-4 text-slate-400" />
+              {[
+                { label: 'Hoje', v: todayIso() },
+                { label: 'Ontem', v: ontemIso() },
+              ].map((d) => (
+                <button
+                  key={d.label}
+                  type="button"
+                  onClick={() => setData(d.v)}
                   className={cn(
-                    'inline-flex max-w-full items-center gap-1 rounded-full py-0.5 pr-1 pl-2 text-[11px]',
-                    t.chip,
+                    'rounded-full px-2.5 py-1 text-xs font-medium transition-colors',
+                    data === d.v
+                      ? 'bg-indigo-600 text-white'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:hover:bg-slate-700',
                   )}
                 >
-                  <t.icon className="h-3 w-3 shrink-0" />
-                  <span className="truncate">{truncate(titulos[t.kind].get(id) ?? 'item', 48)}</span>
-                  <button
-                    type="button"
-                    onClick={() => toggle(t.kind, id)}
-                    className="rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
-                    aria-label="Remover vínculo"
-                  >
-                    <X className="h-3 w-3" />
-                  </button>
-                </span>
-              )),
-            )}
+                  {d.label}
+                </button>
+              ))}
+              <TextInput
+                type="date"
+                value={data}
+                max={todayIso()}
+                onChange={(e) => setData(e.target.value)}
+                aria-label="Data da entrada"
+                className="w-auto py-1 text-xs"
+              />
+            </div>
           </div>
-        )}
 
-        <div className="mt-3 flex items-center justify-between gap-3">
-          <span className="text-xs text-slate-400">
-            {totalSelec > 0
-              ? `${totalSelec} vínculo${totalSelec > 1 ? 's' : ''}`
-              : 'Sem vínculo: escolha abaixo a que esta entrada se refere'}
-          </span>
-          <Button variant="primary" onClick={registrar} disabled={!texto.trim()}>
-            <Send className="h-4 w-4" />
-            Registrar
-          </Button>
-        </div>
-      </Card>
+          <MarkdownEditor
+            value={texto}
+            onChange={setTexto}
+            onSubmit={registrar}
+            ariaLabel="Texto da entrada"
+            placeholder="O que você avançou? Ex.: terminei o módulo 2 do curso de SQL e apliquei window functions no relatório de vendas (consulta caiu de 40 s para 6 s)."
+            extra={
+              <ModelosMenu
+                onEscolher={(m) => setTexto((t) => (t.trim() ? `${t.trimEnd()}\n\n${m}` : m))}
+              />
+            }
+          />
+
+          {totalSelec > 0 && (
+            <div className="mt-3 flex flex-wrap gap-1.5">
+              {TABS.flatMap((t) =>
+                [...selec[t.kind]].map((id) => (
+                  <span
+                    key={`${t.kind}:${id}`}
+                    className={cn(
+                      'inline-flex max-w-full items-center gap-1 rounded-full py-0.5 pr-1 pl-2 text-[11px]',
+                      t.chip,
+                    )}
+                  >
+                    <t.icon className="h-3 w-3 shrink-0" />
+                    <span className="truncate">{truncate(titulos[t.kind].get(id) ?? 'item', 48)}</span>
+                    <button
+                      type="button"
+                      onClick={() => toggle(t.kind, id)}
+                      className="rounded-full p-0.5 hover:bg-black/10 dark:hover:bg-white/10"
+                      aria-label="Remover vínculo"
+                    >
+                      <X className="h-3 w-3" />
+                    </button>
+                  </span>
+                )),
+              )}
+            </div>
+          )}
+
+          <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => setDestaque((v) => !v)}
+                aria-pressed={destaque}
+                title="Destaques vão para o topo do brag document"
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-full border px-2.5 py-1 text-xs font-medium transition-colors',
+                  destaque
+                    ? 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                    : 'border-slate-200 text-slate-500 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-400 dark:hover:bg-slate-800',
+                )}
+              >
+                <Star className={cn('h-3.5 w-3.5', destaque && 'fill-current')} />
+                Destaque
+              </button>
+              <span className="text-xs text-slate-400">
+                {totalSelec > 0
+                  ? `${totalSelec} vínculo${totalSelec > 1 ? 's' : ''}`
+                  : 'Sem vínculo: escolha abaixo a que esta entrada se refere'}
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              {editandoId && (
+                <Button variant="ghost" onClick={limparEditor}>
+                  Cancelar
+                </Button>
+              )}
+              <Button variant="primary" onClick={registrar} disabled={!texto.trim()} title="Ctrl+Enter">
+                <Send className="h-4 w-4" />
+                {editandoId ? 'Salvar alterações' : 'Registrar'}
+              </Button>
+            </div>
+          </div>
+        </Card>
+      </div>
 
       {/* Link picker */}
       <Card className="mt-4 p-0">
@@ -400,63 +516,209 @@ export function Diario() {
 
       {/* History */}
       <div className="mt-8">
-        <h2 className="mb-3 text-sm font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
-          Histórico
-        </h2>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <h2 className="text-sm font-semibold tracking-wide text-slate-500 uppercase dark:text-slate-400">
+            Histórico
+          </h2>
+          {entradas.length > 0 && (
+            <div className="flex items-center gap-2">
+              <div className="relative">
+                <Search className="pointer-events-none absolute top-1/2 left-2.5 h-3.5 w-3.5 -translate-y-1/2 text-slate-400" />
+                <TextInput
+                  value={busca}
+                  onChange={(e) => setBusca(e.target.value)}
+                  placeholder="Buscar no diário"
+                  aria-label="Buscar no diário"
+                  className="w-44 py-1.5 pl-8 text-xs"
+                />
+              </div>
+              <button
+                type="button"
+                onClick={() => setSoDestaques((v) => !v)}
+                aria-pressed={soDestaques}
+                className={cn(
+                  'inline-flex items-center gap-1 rounded-lg border px-2.5 py-1.5 text-xs font-medium',
+                  soDestaques
+                    ? 'border-amber-300 bg-amber-50 text-amber-700 dark:border-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
+                    : 'border-slate-200 text-slate-500 dark:border-slate-700 dark:text-slate-400',
+                )}
+              >
+                <Star className={cn('h-3.5 w-3.5', soDestaques && 'fill-current')} />
+                Destaques
+              </button>
+            </div>
+          )}
+        </div>
         {entradas.length === 0 ? (
           <p className="py-8 text-center text-sm text-slate-400">
             Nenhuma entrada ainda. Sua primeira reflexão aparece aqui.
           </p>
+        ) : dias.length === 0 ? (
+          <p className="py-8 text-center text-sm text-slate-400">Nenhuma entrada encontrada.</p>
         ) : (
-          <div className="space-y-3">
-            {entradas.map((e) => {
-              const vinculos = TABS.flatMap((t) =>
-                e[ENTRY_FIELD[t.kind]].map((id) => ({ t, id })),
-              )
-              return (
-                <Card key={e.id} className="p-4">
-                  <div className="flex items-start justify-between gap-3">
-                    <span className="text-xs font-semibold text-slate-400">
-                      {formatDateBr(e.data)}
+          <ol className="space-y-6">
+            {dias.map((dia) => (
+              <li key={dia.data}>
+                <div className="sticky top-0 z-10 mb-2 flex items-center justify-between gap-2 bg-slate-50/90 py-1 backdrop-blur dark:bg-slate-950/90">
+                  <h3 className="text-sm font-semibold text-slate-700 dark:text-slate-200">
+                    {diaRelativo(dia.data)}
+                    <span className="ml-2 text-xs font-normal text-slate-400">
+                      {formatDateBr(dia.data)}
+                      {dia.entradas.length > 1 && ` · ${dia.entradas.length} entradas`}
                     </span>
-                    <button
-                      type="button"
-                      onClick={() => remover(e.id)}
-                      className="shrink-0 text-slate-400 hover:text-rose-500"
-                      aria-label="Excluir"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </button>
-                  </div>
-                  <div
-                    className="markdown mt-1.5 text-sm text-slate-700 dark:text-slate-200"
-                    dangerouslySetInnerHTML={{ __html: renderMarkdown(e.texto) }}
-                  />
-                  {vinculos.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1.5">
-                      {vinculos.map(({ t, id }) => (
-                        <span
-                          key={`${t.kind}:${id}`}
-                          title={t.label}
-                          className={cn(
-                            'inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-[10px]',
-                            t.chip,
-                          )}
-                        >
-                          <t.icon className="h-2.5 w-2.5 shrink-0" />
-                          <span className="truncate">
-                            {truncate(titulos[t.kind].get(id) ?? 'item', 48)}
-                          </span>
-                        </span>
-                      ))}
-                    </div>
-                  )}
-                </Card>
-              )
-            })}
-          </div>
+                  </h3>
+                  <button
+                    type="button"
+                    onClick={() => novaNoDia(dia.data)}
+                    className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-slate-500 hover:bg-white hover:text-indigo-600 dark:text-slate-400 dark:hover:bg-slate-800"
+                    title="Nova entrada neste dia"
+                  >
+                    <Plus className="h-3.5 w-3.5" />
+                    <span className="hidden sm:inline">Adicionar neste dia</span>
+                  </button>
+                </div>
+                <div className="space-y-2 border-l-2 border-slate-200 pl-3 dark:border-slate-700">
+                  {dia.entradas.map((e) => {
+                    const vinculos = TABS.flatMap((t) =>
+                      e[ENTRY_FIELD[t.kind]].map((id) => ({ t, id })),
+                    )
+                    const pedindo = confirmarExclusao === e.id
+                    return (
+                      <Card
+                        key={e.id}
+                        className={cn(
+                          'group p-4',
+                          editandoId === e.id && 'border-indigo-300 dark:border-indigo-700',
+                          e.destaque && 'border-amber-200 dark:border-amber-800/70',
+                        )}
+                      >
+                        <div className="flex items-start gap-3">
+                          <div
+                            className="markdown min-w-0 flex-1 text-sm text-slate-700 dark:text-slate-200"
+                            dangerouslySetInnerHTML={{ __html: renderMarkdown(e.texto) }}
+                          />
+                          <div className="flex shrink-0 items-center gap-0.5">
+                            <IconButton
+                              label={e.destaque ? 'Tirar dos destaques' : 'Marcar como destaque'}
+                              onClick={() => alternarDestaque(e)}
+                              className={e.destaque ? 'text-amber-500' : undefined}
+                            >
+                              <Star className={cn('h-4 w-4', e.destaque && 'fill-current')} />
+                            </IconButton>
+                            <IconButton label="Editar" onClick={() => editar(e)}>
+                              <Pencil className="h-4 w-4" />
+                            </IconButton>
+                            <IconButton
+                              label="Excluir"
+                              onClick={() => setConfirmarExclusao(e.id)}
+                              className="hover:text-rose-500"
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </IconButton>
+                          </div>
+                        </div>
+                        {vinculos.length > 0 && (
+                          <div className="mt-2 flex flex-wrap gap-1.5">
+                            {vinculos.map(({ t, id }) => (
+                              <span
+                                key={`${t.kind}:${id}`}
+                                title={t.label}
+                                className={cn(
+                                  'inline-flex max-w-full items-center gap-1 rounded-full px-2 py-0.5 text-[10px]',
+                                  t.chip,
+                                )}
+                              >
+                                <t.icon className="h-2.5 w-2.5 shrink-0" />
+                                <span className="truncate">
+                                  {truncate(titulos[t.kind].get(id) ?? 'item', 48)}
+                                </span>
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                        {pedindo && (
+                          <div className="mt-3 flex flex-wrap items-center justify-end gap-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-700 dark:bg-rose-500/10 dark:text-rose-300">
+                            <span className="mr-auto">Excluir esta entrada? Não dá para desfazer.</span>
+                            <Button variant="ghost" className="px-2 py-1 text-xs" onClick={() => setConfirmarExclusao(null)}>
+                              Manter
+                            </Button>
+                            <Button variant="danger" className="px-2 py-1 text-xs" onClick={() => remover(e.id)}>
+                              Excluir
+                            </Button>
+                          </div>
+                        )}
+                      </Card>
+                    )
+                  })}
+                </div>
+              </li>
+            ))}
+          </ol>
         )}
       </div>
+    </div>
+  )
+}
+
+function IconButton({
+  label,
+  onClick,
+  className,
+  children,
+}: {
+  label: string
+  onClick: () => void
+  className?: string
+  children: ReactNode
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      title={label}
+      aria-label={label}
+      className={cn(
+        'rounded-md p-1.5 text-slate-400 transition-colors hover:bg-slate-100 hover:text-slate-600 dark:hover:bg-slate-800 dark:hover:text-slate-200',
+        className,
+      )}
+    >
+      {children}
+    </button>
+  )
+}
+
+/** Modelos de texto que ajudam a começar uma entrada. */
+function ModelosMenu({ onEscolher }: { onEscolher: (texto: string) => void }) {
+  const [aberto, setAberto] = useState(false)
+  return (
+    <div className="relative mr-1">
+      <button
+        type="button"
+        onClick={() => setAberto((v) => !v)}
+        aria-expanded={aberto}
+        className="rounded-md px-2 py-1 text-xs font-medium text-indigo-600 hover:bg-white dark:text-indigo-300 dark:hover:bg-slate-700"
+      >
+        Modelos
+      </button>
+      {aberto && (
+        <ul className="absolute right-0 z-20 mt-1 w-64 rounded-lg border border-slate-200 bg-white p-1 shadow-lg dark:border-slate-700 dark:bg-slate-900">
+          {MODELOS_DIARIO.map((m) => (
+            <li key={m.nome}>
+              <button
+                type="button"
+                onClick={() => {
+                  onEscolher(m.texto)
+                  setAberto(false)
+                }}
+                className="block w-full rounded-md px-2 py-1.5 text-left hover:bg-indigo-50 dark:hover:bg-indigo-500/15"
+              >
+                <span className="block text-xs font-medium text-slate-700 dark:text-slate-200">{m.nome}</span>
+                <span className="block text-[11px] text-slate-400">{m.dica}</span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </div>
   )
 }

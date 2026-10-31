@@ -14,6 +14,15 @@ import { buildCatalogSeed } from './index'
 const CATALOG_SEED_VERSION = 5
 
 /**
+ * Additions to the catalog that must NOT replace it (so /admin edits survive):
+ * seed items from these positions on are inserted when their id is missing.
+ *
+ * v1 = +60 itens de trilha gratuitos (tpl-26…) e +8 certificações gratuitas.
+ */
+const CATALOG_ADDITIONS_VERSION = 1
+const ADICOES = { trilhaDesde: 26, certificacoesDesde: 16 }
+
+/**
  * Seed the shared catalog on an empty database and re-seed when
  * CATALOG_SEED_VERSION advances. A bump intentionally replaces the whole catalog
  * (overwriting /admin edits). Users' PDI tables have no FK to the catalog, so a
@@ -27,16 +36,48 @@ export async function ensureCatalogSeeded(db: Database): Promise<void> {
     const stored = row ? Number(row.valor) : 0
     const countRow = await db.get<{ n: number }>(`SELECT COUNT(*) AS n FROM areas`)
     const isEmpty = !countRow || Number(countRow.n) === 0
-    if (stored >= CATALOG_SEED_VERSION && !isEmpty) return
+    if (stored >= CATALOG_SEED_VERSION && !isEmpty) {
+      await ensureCatalogAdditions(db)
+      return
+    }
     const data = await buildCatalogSeed()
     await new PgCatalogRepository(db).replaceAll(data)
-    await db.run(
-      `INSERT INTO app_config (chave, valor) VALUES ('catalog_seed_version', ?)
-       ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor`,
-      [String(CATALOG_SEED_VERSION)],
-    )
+    await setConfig(db, 'catalog_seed_version', CATALOG_SEED_VERSION)
+    // A full seed already carries every addition.
+    await setConfig(db, 'catalog_additions_version', CATALOG_ADDITIONS_VERSION)
     console.log(`[seed] catálogo semeado (v${CATALOG_SEED_VERSION})`)
   } catch (err) {
     console.warn('[seed] seed automático do catálogo falhou', err)
   }
+}
+
+/** Insert the newer seed items (ADICOES) that the catalog doesn't have yet. */
+async function ensureCatalogAdditions(db: Database): Promise<void> {
+  const row = await db.get<{ valor: string }>(
+    `SELECT valor FROM app_config WHERE chave = 'catalog_additions_version'`,
+  )
+  if ((row ? Number(row.valor) : 0) >= CATALOG_ADDITIONS_VERSION) return
+  const repo = new PgCatalogRepository(db)
+  const data = await buildCatalogSeed()
+  const [tpls, certs] = await Promise.all([repo.listTrilhaTemplates(), repo.listCertificacoes()])
+  const tplIds = new Set(tpls.map((t) => t.id))
+  const certIds = new Set(certs.map((c) => c.id))
+  const novosTpl = data.trilhaTemplates.slice(ADICOES.trilhaDesde).filter((t) => !tplIds.has(t.id))
+  const novasCert = data.certificacoes
+    .slice(ADICOES.certificacoesDesde)
+    .filter((c) => !certIds.has(c.id))
+  for (const t of novosTpl) await repo.upsertTrilhaTemplate(t)
+  for (const c of novasCert) await repo.upsertCertificacao(c)
+  await setConfig(db, 'catalog_additions_version', CATALOG_ADDITIONS_VERSION)
+  console.log(
+    `[seed] adições ao catálogo (v${CATALOG_ADDITIONS_VERSION}): ${novosTpl.length} itens de trilha, ${novasCert.length} certificações`,
+  )
+}
+
+async function setConfig(db: Database, chave: string, valor: number): Promise<void> {
+  await db.run(
+    `INSERT INTO app_config (chave, valor) VALUES (?, ?)
+     ON CONFLICT(chave) DO UPDATE SET valor = excluded.valor`,
+    [chave, String(valor)],
+  )
 }

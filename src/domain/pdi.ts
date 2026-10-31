@@ -63,6 +63,8 @@ export interface Acao {
   status: AcaoStatus
   detalhes: string | null
   ordem: number
+  /** Data (yyyy-mm-dd) em que foi concluída; o servidor preenche e limpa sozinho. */
+  concluidoEm?: string | null
 }
 
 export interface Forca {
@@ -83,6 +85,8 @@ export interface TrilhaItem {
   duracao: string | null
   recursoUrl: string | null
   concluido: boolean
+  /** Data (yyyy-mm-dd) em que foi concluído; o servidor preenche e limpa sozinho. */
+  concluidoEm?: string | null
 }
 
 export interface DiarioEntry {
@@ -96,6 +100,8 @@ export interface DiarioEntry {
   trilhaItemIds: string[]
   /** Habilidades in development (gaps from the auto-avaliação), N:N. */
   habilidadeIds: string[]
+  /** Marked as a highlight: goes to the top of the brag document. */
+  destaque?: boolean
 }
 
 export interface Conquista {

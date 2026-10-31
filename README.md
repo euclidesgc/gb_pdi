@@ -2,7 +2,9 @@
 
 Plano de Desenvolvimento Individual: cada pessoa escolhe a carreira e o nível, faz a
 auto-avaliação das habilidades esperadas e monta o plano de desenvolvimento (objetivos,
-ações, campo de forças, trilha de aprendizado e diário de evolução). A área `/admin`
+ações, campo de forças, trilha de aprendizado e diário de evolução). O dashboard destaca os
+prazos por urgência e sugere o próximo passo, e o brag document resume o que a pessoa entregou
+e aprendeu num período. A área `/admin`
 mantém o catálogo compartilhado (áreas, níveis, competências, matriz de habilidades,
 certificações e modelos de trilha) e os usuários.
 
@@ -160,7 +162,9 @@ você antes de inventar dados ou excluir algo.
 | `atualizar_perfil` | Nome, propósito, área e nível. |
 | `avaliar_habilidades` | Auto-avaliação em lote (1–4; 0 limpa). |
 | `salvar_objetivo`, `salvar_acao`, `salvar_forca`, `salvar_item_trilha` | Criam (sem `id`) ou atualizam (com `id`, só os campos enviados). |
-| `registrar_diario` | Nova entrada no diário. |
+| `registrar_diario` | Nova entrada no diário (com `destaque` para as vitórias principais). |
+| `ver_prazos` | Prazos em aberto por urgência e pontos de atenção do plano. |
+| `gerar_brag_doc` | Brag document (Markdown) de um período. |
 | `excluir_registro` | Exclui objetivo, ação, força, item de trilha ou entrada do diário. |
 
 Detalhes técnicos em [`docs/mcp.md`](docs/mcp.md).
@@ -168,6 +172,7 @@ Detalhes técnicos em [`docs/mcp.md`](docs/mcp.md).
 ## Documentação
 
 - [`docs/mcp.md`](docs/mcp.md) — servidor MCP.
+- [`docs/pesquisa-mercado-e-bragdoc.md`](docs/pesquisa-mercado-e-bragdoc.md) — comparação com o mercado, features sugeridas e o modelo de brag document.
 - [`docs/plano-matriz-habilidades.md`](docs/plano-matriz-habilidades.md) — modelo de
   habilidades, auto-avaliação e plano de desenvolvimento.
 - [`docs/leveling.md`](docs/leveling.md) — matriz de leveling de referência.

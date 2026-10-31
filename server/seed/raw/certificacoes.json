@@ -281,5 +281,157 @@
     "competencias": [
       "aplicacao-conhecimento"
     ]
+  },
+  {
+    "nome": "OpenSSF – Developing Secure Software (LFD121)",
+    "provedor": "OpenSSF / Linux Foundation",
+    "url": "https://openssf.org/training/courses/",
+    "gratuita": true,
+    "categoria": "Segurança",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "seguranca",
+      "desenvolvimento-seguro",
+      "gratuito"
+    ],
+    "competencias": [
+      "qualidade-seguranca"
+    ]
+  },
+  {
+    "nome": "Microsoft Applied Skills",
+    "provedor": "Microsoft",
+    "url": "https://learn.microsoft.com/pt-br/credentials/applied-skills/",
+    "gratuita": true,
+    "categoria": "Cloud & Arquitetura",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "azure",
+      "microsoft",
+      "gratuito"
+    ],
+    "competencias": [
+      "aplicacao-conhecimento",
+      "arquitetura"
+    ]
+  },
+  {
+    "nome": "AWS Training Badges (Skill Builder)",
+    "provedor": "AWS",
+    "url": "https://aws.amazon.com/training/badges/",
+    "gratuita": true,
+    "categoria": "Cloud & Arquitetura",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "aws",
+      "cloud",
+      "badge",
+      "gratuito"
+    ],
+    "competencias": [
+      "arquitetura",
+      "aplicacao-conhecimento"
+    ]
+  },
+  {
+    "nome": "Kaggle Learn – Certificados de conclusão",
+    "provedor": "Kaggle",
+    "url": "https://www.kaggle.com/learn",
+    "gratuita": true,
+    "categoria": "Fundamentos",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "python",
+      "sql",
+      "dados",
+      "gratuito"
+    ],
+    "competencias": [
+      "aplicacao-conhecimento"
+    ]
+  },
+  {
+    "nome": "Cisco Networking Academy – Introduction to Cybersecurity",
+    "provedor": "Cisco",
+    "url": "https://www.netacad.com/courses/introduction-to-cybersecurity",
+    "gratuita": true,
+    "categoria": "Segurança",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "seguranca",
+      "redes",
+      "badge",
+      "gratuito"
+    ],
+    "competencias": [
+      "qualidade-seguranca"
+    ]
+  },
+  {
+    "nome": "Scrum Fundamentals Certified (SFC)",
+    "provedor": "SCRUMstudy",
+    "url": "https://www.scrumstudy.com/portuguese/scrum-fundamentals-certified",
+    "gratuita": true,
+    "categoria": "Ágil & Entrega",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "scrum",
+      "agil",
+      "gratuito"
+    ],
+    "competencias": [
+      "entrega"
+    ]
+  },
+  {
+    "nome": "HackerRank Skills Certification",
+    "provedor": "HackerRank",
+    "url": "https://www.hackerrank.com/skills-verification",
+    "gratuita": true,
+    "categoria": "Linguagens",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "algoritmos",
+      "sql",
+      "problem-solving",
+      "gratuito"
+    ],
+    "competencias": [
+      "resolucao-problemas-tecnicos"
+    ]
+  },
+  {
+    "nome": "Postman API Fundamentals Student Expert",
+    "provedor": "Postman",
+    "url": "https://www.postman.com/postman-student-programs/",
+    "gratuita": true,
+    "categoria": "Qualidade & Testes",
+    "areas": [
+      "engenharia-software"
+    ],
+    "keywords": [
+      "api",
+      "testes",
+      "postman",
+      "gratuito"
+    ],
+    "competencias": [
+      "qualidade-seguranca",
+      "aplicacao-conhecimento"
+    ]
   }
 ]

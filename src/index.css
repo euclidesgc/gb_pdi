@@ -153,6 +153,36 @@ body {
 .markdown strong {
   font-weight: 600;
 }
+.markdown hr {
+  margin: 1em 0;
+  border-color: color-mix(in srgb, currentColor 15%, transparent);
+}
+.markdown table {
+  width: 100%;
+  margin: 0.6em 0;
+  border-collapse: collapse;
+  font-size: 0.95em;
+}
+.markdown th,
+.markdown td {
+  border: 1px solid color-mix(in srgb, currentColor 15%, transparent);
+  padding: 0.35em 0.6em;
+  text-align: left;
+  vertical-align: top;
+}
+.markdown th {
+  font-weight: 600;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+}
+/* Task lists (- [ ] / - [x]) without the bullet. */
+.markdown li:has(> input[type='checkbox']) {
+  list-style: none;
+  margin-left: -1.2em;
+}
+.markdown input[type='checkbox'] {
+  margin-right: 0.4em;
+  vertical-align: middle;
+}
 
 /* Print: show only the .print-area (used by the Currículo export), and force a
    readable light "paper" palette regardless of the app's dark mode. */

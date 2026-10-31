@@ -3,7 +3,9 @@ import { AlertTriangle, Check, Download, Upload } from 'lucide-react'
 import { Button, Card, Field, Select, SelectItem, SELECT_NONE, TextArea, TextInput } from '@/components/ui/controls'
 import { AgentesIaCard } from '@/components/app/AgentesIaCard'
 import { SegurancaCard } from '@/components/app/SegurancaCard'
+import { Exemplos } from '@/components/ui/Dica'
 import { useCatalogRepository, usePdiRepository } from '@/data/repositories'
+import { EXEMPLOS_PROPOSITO } from '@/lib/exemplos'
 import type { Area, NivelCarreira } from '@/domain/catalog'
 import type { PdiExport, Perfil as PerfilModel } from '@/domain/pdi'
 import { PERFIL_PADRAO } from '@/domain/pdi'
@@ -110,8 +112,11 @@ export function Perfil() {
           <TextArea
             value={perfil.proposito ?? ''}
             onChange={(e) => update({ proposito: e.target.value || null })}
-            placeholder="O que move o seu desenvolvimento?"
+            placeholder="O que move o seu desenvolvimento? Em uma frase: aonde quer chegar e por quê."
           />
+          {!perfil.proposito && (
+            <Exemplos itens={EXEMPLOS_PROPOSITO} onEscolher={(t) => update({ proposito: t })} />
+          )}
         </Field>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Carreira">

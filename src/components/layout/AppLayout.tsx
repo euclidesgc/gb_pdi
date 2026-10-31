@@ -1,10 +1,11 @@
-import { Suspense, useState } from 'react'
-import { NavLink, Outlet } from 'react-router-dom'
+import { Suspense, useEffect, useState } from 'react'
+import { NavLink, Outlet, useLocation } from 'react-router-dom'
 import {
   ClipboardCheck,
   Gauge,
   Goal,
   IdCard,
+  Medal,
   ListTodo,
   LogOut,
   Menu,
@@ -19,7 +20,9 @@ import {
 } from 'lucide-react'
 import { useAuth } from '@/auth/AuthProvider'
 import { isAdmin } from '@/domain/auth'
+import { usePdiRepository } from '@/data/repositories'
 import { cn } from '@/lib/cn'
+import { coletarPrazos } from '@/lib/prazos'
 import { ThemeToggle } from './ThemeToggle'
 
 const NAV = [
@@ -31,12 +34,41 @@ const NAV = [
   { to: '/app/trilha', label: 'Trilha', icon: RouteIcon },
   { to: '/app/evolucao', label: 'Evolução', icon: TrendingUp },
   { to: '/app/diario', label: 'Diário', icon: NotebookPen },
+  { to: '/app/bragdoc', label: 'Brag document', icon: Medal },
   { to: '/app/comparador', label: 'Comparador', icon: Scale },
   { to: '/app/curriculo', label: 'Currículo', icon: IdCard },
 ]
 
+/**
+ * Prazos atrasados ou que vencem hoje, por tela (Plano e Objetivos). Recalcula a
+ * cada navegação para o selo do menu acompanhar o que a pessoa acabou de mudar.
+ */
+function useAlertasDePrazo(): Record<string, number> {
+  const pdi = usePdiRepository()
+  const { pathname } = useLocation()
+  const [alertas, setAlertas] = useState<Record<string, number>>({})
+  useEffect(() => {
+    let vivo = true
+    void Promise.all([pdi.listObjetivos(), pdi.listAcoes()])
+      .then(([objs, acoes]) => {
+        if (!vivo) return
+        const urgentes = coletarPrazos(objs, acoes).filter((p) => p.dias <= 0)
+        setAlertas({
+          '/app/plano': urgentes.filter((p) => p.kind === 'acao').length,
+          '/app/objetivos': urgentes.filter((p) => p.kind === 'objetivo').length,
+        })
+      })
+      .catch(() => {})
+    return () => {
+      vivo = false
+    }
+  }, [pdi, pathname])
+  return alertas
+}
+
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
   const { user } = useAuth()
+  const alertas = useAlertasDePrazo()
 
   return (
     <>
@@ -58,6 +90,14 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
           >
             <Icon className="h-4 w-4" />
             {label}
+            {(alertas[to] ?? 0) > 0 && (
+              <span
+                className="ml-auto rounded-full bg-rose-500 px-1.5 text-[10px] leading-4 font-semibold text-white"
+                title="Prazos atrasados ou que vencem hoje"
+              >
+                {alertas[to]}
+              </span>
+            )}
           </NavLink>
         ))}
       </nav>

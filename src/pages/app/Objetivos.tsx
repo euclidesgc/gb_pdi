@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from 'react'
 import {
+  AlertTriangle,
   ChevronDown,
   ChevronRight,
   Minus,
@@ -11,10 +12,41 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { Button, Card, Field, LevelSelect, Select, SelectItem, TextArea, TextInput } from '@/components/ui/controls'
+import { Dica, Exemplos } from '@/components/ui/Dica'
 import { Modal } from '@/components/ui/Modal'
 import { usePdiRepository } from '@/data/repositories'
-import type { Forca, ForcaTipo, Objetivo, ObjetivoCategoria } from '@/domain/pdi'
+import type { Acao, Forca, ForcaTipo, Objetivo, ObjetivoCategoria } from '@/domain/pdi'
+import { cn } from '@/lib/cn'
 import { newId } from '@/lib/id'
+import { daysUntil, todayIso } from '@/lib/pdiStats'
+import { acaoDepoisDoObjetivo, objetivoConcluido, prazoTexto, URGENCIA, urgenciaDe } from '@/lib/prazos'
+
+/** Exemplos de objetivos específicos, com resultado observável. */
+const EXEMPLOS_OBJETIVO: Record<ObjetivoCategoria, string[]> = {
+  educacional: [
+    'Dominar testes automatizados no back-end',
+    'Tirar a certificação AWS Cloud Practitioner',
+    'Aprender os fundamentos de system design',
+  ],
+  funcional: [
+    'Liderar tecnicamente a próxima feature do time',
+    'Reduzir em 30% os incidentes do serviço X',
+    'Ser referência do time em observabilidade',
+  ],
+}
+
+const EXEMPLOS_JUSTIFICATIVA = [
+  'É uma expectativa do próximo nível na matriz de carreira.',
+  'Meu time precisa disso e hoje dependemos de uma só pessoa.',
+  'Quero mais autonomia para propor soluções de arquitetura.',
+]
+
+/** Atalhos de prazo: daqui a N meses. */
+function emMeses(n: number): string {
+  const d = new Date(`${todayIso()}T12:00:00`)
+  d.setMonth(d.getMonth() + n)
+  return d.toISOString().slice(0, 10)
+}
 
 const CATEGORIAS: { id: ObjetivoCategoria; label: string; hint: string }[] = [
   { id: 'educacional', label: 'Educacional', hint: 'Aprender algo novo' },
@@ -44,14 +76,16 @@ export function Objetivos() {
   const pdi = usePdiRepository()
   const [objetivos, setObjetivos] = useState<Objetivo[]>([])
   const [forcas, setForcas] = useState<Forca[]>([])
+  const [acoes, setAcoes] = useState<Acao[]>([])
   const [loading, setLoading] = useState(true)
   const [editing, setEditing] = useState<Objetivo | null>(null)
   const [expanded, setExpanded] = useState<string | null>(null)
 
   const load = async () => {
-    const [o, f] = await Promise.all([pdi.listObjetivos(), pdi.listForcas()])
+    const [o, f, a] = await Promise.all([pdi.listObjetivos(), pdi.listForcas(), pdi.listAcoes()])
     setObjetivos(o)
     setForcas(f)
+    setAcoes(a)
     setLoading(false)
   }
   useEffect(() => {
@@ -106,6 +140,7 @@ export function Objetivos() {
             key={o.id}
             objetivo={o}
             forcas={forcas.filter((f) => f.objetivoId === o.id)}
+            acoes={acoes.filter((a) => a.objetivoId === o.id)}
             expanded={expanded === o.id}
             onToggle={() => setExpanded((cur) => (cur === o.id ? null : o.id))}
             onEdit={() => setEditing(o)}
@@ -129,6 +164,7 @@ export function Objetivos() {
 function ObjetivoCard({
   objetivo,
   forcas,
+  acoes,
   expanded,
   onToggle,
   onEdit,
@@ -137,6 +173,7 @@ function ObjetivoCard({
 }: {
   objetivo: Objetivo
   forcas: Forca[]
+  acoes: Acao[]
   expanded: boolean
   onToggle: () => void
   onEdit: () => void
@@ -147,6 +184,11 @@ function ObjetivoCard({
   const restritivas = forcas.filter((f) => f.tipo === 'restritiva')
   const somaImp = impulsoras.reduce((s, f) => s + f.intensidade, 0)
   const somaRes = restritivas.reduce((s, f) => s + f.intensidade, 0)
+  const concluido = objetivoConcluido(objetivo, acoes)
+  const feitas = acoes.filter((a) => a.status === 'concluido').length
+  const dias = objetivo.prazo ? daysUntil(objetivo.prazo) : null
+  const urg = dias !== null && !concluido ? URGENCIA[urgenciaDe(dias)] : null
+  const foraDoPrazo = acoes.filter((a) => a.status !== 'concluido' && acaoDepoisDoObjetivo(a, objetivo))
 
   return (
     <Card className="p-0">
@@ -174,8 +216,48 @@ function ObjetivoCard({
               {CAT_LABEL[objetivo.categoria]}
             </span>
             {objetivo.prazo && (
-              <span className="text-xs text-slate-400">
-                prazo {formatDate(objetivo.prazo)}
+              <span
+                title={`Prazo: ${formatDate(objetivo.prazo)}`}
+                className={cn(
+                  'rounded-full px-2 py-0.5 text-[11px]',
+                  concluido
+                    ? 'text-emerald-600 dark:text-emerald-400'
+                    : urg && dias !== null && dias <= 30
+                      ? cn('font-medium', urg.badge)
+                      : 'text-slate-400',
+                )}
+              >
+                {concluido
+                  ? 'concluído'
+                  : dias !== null && dias <= 30
+                    ? prazoTexto(dias, objetivo.prazo)
+                    : `prazo ${formatDate(objetivo.prazo)}`}
+              </span>
+            )}
+          </div>
+          <div className="mt-1 flex flex-wrap items-center gap-3 text-xs text-slate-400">
+            <span>
+              {acoes.length === 0
+                ? 'Nenhuma ação no plano'
+                : `${feitas} de ${acoes.length} ${acoes.length === 1 ? 'ação concluída' : 'ações concluídas'}`}
+            </span>
+            {acoes.length > 0 && (
+              <span className="h-1.5 w-20 overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
+                <span
+                  className="block h-full bg-emerald-500"
+                  style={{ width: `${(feitas / acoes.length) * 100}%` }}
+                />
+              </span>
+            )}
+            {foraDoPrazo.length > 0 && (
+              <span
+                className="inline-flex items-center gap-1 text-amber-600 dark:text-amber-400"
+                title={foraDoPrazo.map((a) => a.titulo).join(', ')}
+              >
+                <AlertTriangle className="h-3 w-3" />
+                {foraDoPrazo.length === 1
+                  ? '1 ação vence depois deste prazo'
+                  : `${foraDoPrazo.length} ações vencem depois deste prazo`}
               </span>
             )}
           </div>
@@ -371,8 +453,14 @@ function ObjetivoModal({
           <TextInput
             value={form.titulo}
             onChange={(e) => setForm((f) => ({ ...f, titulo: e.target.value }))}
-            placeholder="Ex.: Liderar um projeto de dados"
+            placeholder="Aonde você quer chegar? Ex.: Liderar um projeto de dados"
           />
+          {!objetivo.id && !form.titulo && (
+            <Exemplos
+              itens={EXEMPLOS_OBJETIVO[form.categoria]}
+              onEscolher={(t) => setForm((f) => ({ ...f, titulo: t }))}
+            />
+          )}
         </Field>
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
           <Field label="Categoria">
@@ -395,15 +483,37 @@ function ObjetivoModal({
               value={form.prazo ?? ''}
               onChange={(e) => setForm((f) => ({ ...f, prazo: e.target.value || null }))}
             />
+            <div className="mt-1.5 flex gap-1.5">
+              {[3, 6, 12].map((n) => (
+                <button
+                  key={n}
+                  type="button"
+                  onClick={() => setForm((f) => ({ ...f, prazo: emMeses(n) }))}
+                  className="rounded-full border border-slate-200 px-2 py-0.5 text-[11px] text-slate-500 hover:border-indigo-300 hover:text-indigo-600 dark:border-slate-700 dark:text-slate-400"
+                >
+                  +{n} meses
+                </button>
+              ))}
+            </div>
           </Field>
         </div>
         <Field label="Por que isso importa?">
           <TextArea
             value={form.justificativa ?? ''}
             onChange={(e) => setForm((f) => ({ ...f, justificativa: e.target.value || null }))}
-            placeholder="A motivação por trás do objetivo."
+            placeholder="A motivação: o que muda para você, para o time ou para a carreira."
           />
+          {!form.justificativa && (
+            <Exemplos
+              itens={EXEMPLOS_JUSTIFICATIVA}
+              onEscolher={(t) => setForm((f) => ({ ...f, justificativa: t }))}
+            />
+          )}
         </Field>
+        <Dica>
+          Um bom objetivo é específico, tem prazo e um resultado que dá para observar. Prefira 2 ou 3
+          objetivos por ciclo; depois, quebre cada um em ações no Plano.
+        </Dica>
         <div className="flex justify-end gap-3 pt-1">
           <Button variant="ghost" onClick={onClose}>
             Cancelar
