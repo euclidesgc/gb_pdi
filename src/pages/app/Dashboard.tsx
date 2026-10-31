@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import {
-  AlertTriangle,
   Award,
-  CalendarClock,
   ClipboardCheck,
   ListChecks,
   Map as MapIcon,
@@ -11,16 +9,11 @@ import {
   TrendingUp,
 } from 'lucide-react'
 import { Card } from '@/components/ui/controls'
+import { PrazosPainel } from '@/components/app/PrazosPainel'
 import { useCatalogRepository, usePdiRepository } from '@/data/repositories'
-import type { Acao, Conquista, Objetivo, Perfil } from '@/domain/pdi'
+import type { Acao, Conquista, DiarioEntry, Objetivo, Perfil, TrilhaItem } from '@/domain/pdi'
 import { evaluateConquistas } from '@/lib/conquistas'
-import {
-  computeSnapshot,
-  daysUntil,
-  formatDateBr,
-  saudeLabel,
-  type PdiSnapshot,
-} from '@/lib/pdiStats'
+import { computeSnapshot, saudeLabel, type PdiSnapshot } from '@/lib/pdiStats'
 
 export function Dashboard() {
   const pdi = usePdiRepository()
@@ -29,6 +22,8 @@ export function Dashboard() {
   const [snap, setSnap] = useState<PdiSnapshot | null>(null)
   const [acoes, setAcoes] = useState<Acao[]>([])
   const [objetivos, setObjetivos] = useState<Objetivo[]>([])
+  const [trilhaItens, setTrilhaItens] = useState<TrilhaItem[]>([])
+  const [diarioEntradas, setDiarioEntradas] = useState<DiarioEntry[]>([])
   const [conquistas, setConquistas] = useState<Conquista[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -83,26 +78,19 @@ export function Dashboard() {
       setPerfil(p)
       setObjetivos(objs)
       setAcoes(ac)
+      setTrilhaItens(trilha)
+      setDiarioEntradas(diario)
       setSnap(snapshot)
       setConquistas(conq)
       setLoading(false)
     })()
   }, [pdi])
 
-  const prazos = useMemo(() => {
-    return acoes
-      .filter((a) => a.dueDate && a.status !== 'concluido')
-      .map((a) => ({ acao: a, dias: daysUntil(a.dueDate as string) }))
-      .sort((x, y) => x.dias - y.dias)
-      .slice(0, 5)
-  }, [acoes])
-
   if (loading || !snap || !perfil) {
     return <p className="text-center text-sm text-slate-400">Carregando dashboard…</p>
   }
 
   const saude = saudeLabel(snap.saude)
-  const objById = new Map(objetivos.map((o) => [o.id, o]))
 
   return (
     <div className="mx-auto max-w-6xl">
@@ -112,6 +100,13 @@ export function Dashboard() {
       <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
         Este é o panorama do seu Plano de Desenvolvimento Individual.
       </p>
+
+      <PrazosPainel
+        objetivos={objetivos}
+        acoes={acoes}
+        trilha={trilhaItens}
+        diario={diarioEntradas}
+      />
 
       <div className="mt-6 grid grid-cols-1 gap-4 lg:grid-cols-3">
         {/* Saúde do PDI */}
@@ -177,45 +172,7 @@ export function Dashboard() {
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-        {/* Próximos prazos */}
-        <Card>
-          <div className="mb-3 flex items-center gap-2 text-slate-700 dark:text-slate-200">
-            <CalendarClock className="h-4 w-4" />
-            <h2 className="text-sm font-semibold">Próximos prazos</h2>
-          </div>
-          {prazos.length === 0 ? (
-            <p className="py-6 text-center text-sm text-slate-400">
-              Nenhuma ação com prazo. Defina prazos no{' '}
-              <Link to="/app/plano" className="text-indigo-600 dark:text-indigo-400">
-                plano
-              </Link>
-              .
-            </p>
-          ) : (
-            <ul className="space-y-2">
-              {prazos.map(({ acao, dias }) => (
-                <li
-                  key={acao.id}
-                  className="flex items-center justify-between gap-3 rounded-lg border border-slate-100 px-3 py-2 dark:border-slate-800"
-                >
-                  <div className="min-w-0">
-                    <p className="truncate text-sm text-slate-700 dark:text-slate-200">
-                      {acao.titulo}
-                    </p>
-                    {acao.objetivoId && objById.get(acao.objetivoId) && (
-                      <p className="truncate text-xs text-slate-400">
-                        {objById.get(acao.objetivoId)?.titulo}
-                      </p>
-                    )}
-                  </div>
-                  <PrazoBadge dias={dias} data={acao.dueDate as string} />
-                </li>
-              ))}
-            </ul>
-          )}
-        </Card>
-
+      <div className="mt-4">
         {/* Conquistas */}
         <Card>
           <div className="mb-3 flex items-center gap-2 text-slate-700 dark:text-slate-200">
@@ -267,26 +224,5 @@ function StatCard({
         {hint && <p className="mt-0.5 text-[11px] text-slate-400">{hint}</p>}
       </Card>
     </Link>
-  )
-}
-
-function PrazoBadge({ dias, data }: { dias: number; data: string }) {
-  let cls = 'bg-slate-100 text-slate-500 dark:bg-slate-800 dark:text-slate-400'
-  let text = formatDateBr(data)
-  if (dias < 0) {
-    cls = 'bg-rose-100 text-rose-700 dark:bg-rose-500/15 dark:text-rose-300'
-    text = `atrasada ${Math.abs(dias)}d`
-  } else if (dias === 0) {
-    cls = 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-    text = 'hoje'
-  } else if (dias <= 7) {
-    cls = 'bg-amber-100 text-amber-700 dark:bg-amber-500/15 dark:text-amber-300'
-    text = `em ${dias}d`
-  }
-  return (
-    <span className={'flex shrink-0 items-center gap-1 rounded-full px-2.5 py-1 text-xs font-medium ' + cls}>
-      {dias < 0 && <AlertTriangle className="h-3 w-3" />}
-      {text}
-    </span>
   )
 }

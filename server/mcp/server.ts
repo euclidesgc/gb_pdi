@@ -4,7 +4,9 @@ import { z } from 'zod'
 import { ESCALA_AUTOAVALIACAO } from '@/domain/catalog'
 import type { AuthUser } from '@/domain/auth'
 import type { Acao, DiarioEntry, Forca, Objetivo, TrilhaItem } from '@/domain/pdi'
+import { gerarBragdoc, SECOES_BRAG, type SecaoBrag } from '@/lib/bragdoc'
 import { newId } from '@/lib/id'
+import { coletarPrazos, pontosDeAtencao, prazoTexto } from '@/lib/prazos'
 import type { Database } from '../db/Database'
 import { PgCatalogRepository } from '../repositories/PgCatalogRepository'
 import { PgPdiRepository } from '../repositories/PgPdiRepository'
@@ -50,7 +52,8 @@ Fluxo sugerido para preencher um PDI:
    3 Faz bonito, 4 Muda o jogo). Notas 1–2 viram gaps do plano de desenvolvimento.
 4. salvar_objetivo — objetivos para os gaps; salvar_forca — forças impulsoras/restritivas.
 5. salvar_acao — ações concretas com prazo; buscar_recursos + salvar_item_trilha — trilha.
-6. registrar_diario — registros de evolução.
+6. registrar_diario — registros de evolução (destaque=true para as vitórias mais importantes).
+7. ver_prazos — o que está atrasado ou vence logo; gerar_brag_doc — relatório do período.
 
 Só avalie habilidades ou invente dados pessoais com base no que a pessoa disse: na dúvida,
 pergunte a ela antes de gravar.`
@@ -471,10 +474,14 @@ export function createMcpServer(db: Database, user: AuthUser): McpServer {
         acaoIds: z.array(z.string()).max(50).optional(),
         trilhaItemIds: z.array(z.string()).max(50).optional(),
         habilidadeIds: z.array(z.string()).max(50).optional(),
+        destaque: z
+          .boolean()
+          .optional()
+          .describe('Marca a entrada como destaque: ela vai para o topo do brag document'),
       },
       annotations: escrita,
     },
-    async ({ texto, data, objetivoIds = [], acaoIds = [], trilhaItemIds = [], habilidadeIds = [] }) => {
+    async ({ texto, data, objetivoIds = [], acaoIds = [], trilhaItemIds = [], habilidadeIds = [], destaque }) => {
       // The repository silently skips unknown links; tell the agent instead.
       const [objetivos, acoes, trilha, habilidades] = await Promise.all([
         pdi.listObjetivos(),
@@ -502,9 +509,98 @@ export function createMcpServer(db: Database, user: AuthUser): McpServer {
         acaoIds,
         trilhaItemIds,
         habilidadeIds,
+        destaque: destaque ?? false,
       }
       await pdi.addDiario(entry)
       return ok({ entrada: entry })
+    },
+  )
+
+  server.registerTool(
+    'ver_prazos',
+    {
+      title: 'Ver prazos e prioridades',
+      description:
+        'Lista os prazos em aberto (ações não concluídas e objetivos), do mais urgente ao ' +
+        'mais distante, com a urgência (atrasado, hoje, urgente, semana, proximo, futuro) e ' +
+        'os pontos de atenção do plano (ex.: ação com prazo depois do prazo do objetivo).',
+      inputSchema: {},
+      annotations: leitura,
+    },
+    async () => {
+      const [objetivos, acoes] = await Promise.all([pdi.listObjetivos(), pdi.listAcoes()])
+      const prazos = coletarPrazos(objetivos, acoes).map((p) => ({
+        tipo: p.kind,
+        id: p.id,
+        titulo: p.titulo,
+        data: p.data,
+        urgencia: p.urgencia,
+        quando: prazoTexto(p.dias, p.data),
+        contexto: p.contexto,
+        emAndamento: p.emAndamento,
+        depoisDoPrazoDoObjetivo: p.depoisDoObjetivo,
+      }))
+      return ok({ prazos, pontosDeAtencao: pontosDeAtencao(objetivos, acoes).map((a) => a.texto) })
+    },
+  )
+
+  server.registerTool(
+    'gerar_brag_doc',
+    {
+      title: 'Gerar brag document',
+      description:
+        'Gera o brag document (Markdown) de um período a partir do PDI: ações concluídas, ' +
+        'trilha, diário (destaques e evidências), auto-avaliação, conquistas e próximos ' +
+        'passos. Trechos {{…}} são lacunas para a pessoa completar. Ao reescrever o texto, ' +
+        'nunca invente números ou resultados.',
+      inputSchema: {
+        inicio: dataIso.describe('Início do período (AAAA-MM-DD)'),
+        fim: dataIso.optional().describe('Fim do período. Padrão: hoje'),
+        secoes: z
+          .array(z.enum(SECOES_BRAG.map((s) => s.id) as [SecaoBrag, ...SecaoBrag[]]))
+          .optional()
+          .describe('Seções a incluir. Padrão: as seções padrão do app'),
+      },
+      annotations: leitura,
+    },
+    async ({ inicio, fim, secoes }) => {
+      const perfil = await pdi.getPerfil()
+      const [objetivos, acoes, trilha, diario, conquistas, forcas, avaliacoes, areas, niveis, competencias] =
+        await Promise.all([
+          pdi.listObjetivos(),
+          pdi.listAcoes(),
+          pdi.listTrilhaItens(),
+          pdi.listDiario(),
+          pdi.listConquistas(),
+          pdi.listForcas(),
+          pdi.listAvaliacoes(),
+          catalog.listAreas(),
+          catalog.listNiveis(),
+          catalog.listCompetencias(),
+        ])
+      const habilidades =
+        perfil.areaId && perfil.nivelId
+          ? await catalog.listHabilidades({ areaId: perfil.areaId, nivelId: perfil.nivelId })
+          : []
+      const markdown = gerarBragdoc(
+        {
+          perfil,
+          areaNome: areas.find((a) => a.id === perfil.areaId)?.nome ?? null,
+          nivelNome: niveis.find((n) => n.id === perfil.nivelId)?.nome ?? null,
+          objetivos,
+          acoes,
+          trilha,
+          diario,
+          conquistas,
+          forcas,
+          avaliacoes,
+          habilidades,
+          competencias,
+        },
+        { inicio, fim: fim ?? hoje() },
+        new Set(secoes ?? SECOES_BRAG.filter((s) => s.padrao).map((s) => s.id)),
+      )
+      return { content: [{ type: 'text', text: markdown }] }
     },
   )
 

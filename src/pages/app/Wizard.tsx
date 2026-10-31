@@ -12,7 +12,9 @@ import {
   TextInput,
 } from '@/components/ui/controls'
 import { HabilidadesRating, type AutoProgress } from '@/components/app/HabilidadesRating'
+import { Exemplos } from '@/components/ui/Dica'
 import { useCatalogRepository, usePdiRepository } from '@/data/repositories'
+import { EXEMPLOS_PROPOSITO } from '@/lib/exemplos'
 import type { Area, NivelCarreira } from '@/domain/catalog'
 import type { Perfil } from '@/domain/pdi'
 import { PERFIL_PADRAO } from '@/domain/pdi'
@@ -152,8 +154,11 @@ export function Wizard() {
             <TextArea
               value={perfil.proposito ?? ''}
               onChange={(e) => setPerfil((p) => ({ ...p, proposito: e.target.value || null }))}
-              placeholder="O que move o seu desenvolvimento?"
+              placeholder="O que move o seu desenvolvimento? Em uma frase: aonde quer chegar e por quê."
             />
+            {!perfil.proposito && (
+              <Exemplos itens={EXEMPLOS_PROPOSITO} onEscolher={(t) => setPerfil((p) => ({ ...p, proposito: t }))} />
+            )}
           </Field>
           {perfil.nome.trim().length > 0 && !perfilOk && (
             <p className="text-xs text-amber-600 dark:text-amber-400">

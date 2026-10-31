@@ -55,6 +55,10 @@ function tokens(text: string): string[] {
     .filter((t) => t.length > 3 && !STOPWORDS.has(t))
 }
 
+/** Templates per gap, so every gap gets something before the trail is capped. */
+const POR_GAP = 4
+const MAX_ITENS = 24
+
 /** Picks templates that address a user's skill gaps (by competency, keyword, area). */
 function gerarItens(
   gaps: GapComp[],
@@ -62,29 +66,42 @@ function gerarItens(
   perfil: Perfil,
   anteriores: TrilhaItem[],
 ): TrilhaItem[] {
-  const concluidoPorTemplate = new Map<string, boolean>()
+  const anteriorPorTemplate = new Map<string, TrilhaItem>()
   anteriores.forEach((t) => {
-    if (t.templateId) concluidoPorTemplate.set(t.templateId, t.concluido)
+    if (t.templateId) anteriorPorTemplate.set(t.templateId, t)
+  })
+
+  // Candidates per gap: direct competency link first, then keyword/title overlap.
+  // Courses and readings alternate with practice so a gap isn't only theory.
+  const porGap = gaps.map((gap) => {
+    const gapTokens = new Set(tokens(gap.nome))
+    const diretos = templates.filter((t) => gap.competenciaId && t.competenciaId === gap.competenciaId)
+    const porTermo = templates.filter((t) => {
+      const hay = new Set([...t.keywords.flatMap(tokens), ...tokens(t.titulo)])
+      return [...gapTokens].some((tk) => hay.has(tk))
+    })
+    const teoria = diretos.filter((t) => t.tipo === 'curso' || t.tipo === 'leitura')
+    const pratica = diretos.filter((t) => t.tipo !== 'curso' && t.tipo !== 'leitura')
+    const intercalados: TrilhaTemplate[] = []
+    for (let i = 0; i < Math.max(teoria.length, pratica.length); i++) {
+      if (teoria[i]) intercalados.push(teoria[i])
+      if (pratica[i]) intercalados.push(pratica[i])
+    }
+    return [...intercalados, ...porTermo]
   })
 
   const escolhidos = new Map<string, TrilhaTemplate>()
   const add = (t: TrilhaTemplate) => {
-    if (!escolhidos.has(t.id)) escolhidos.set(t.id, t)
+    if (!escolhidos.has(t.id) && escolhidos.size < MAX_ITENS) escolhidos.set(t.id, t)
   }
-
-  for (const gap of gaps) {
-    const gapTokens = new Set(tokens(gap.nome))
-    // 1) direct competency link
-    for (const t of templates) {
-      if (gap.competenciaId && t.competenciaId === gap.competenciaId) add(t)
-    }
-    // 2) keyword / title overlap
-    for (const t of templates) {
-      const hay = new Set([...t.keywords.flatMap(tokens), ...tokens(t.titulo)])
-      if ([...gapTokens].some((tk) => hay.has(tk))) add(t)
+  // Round-robin across gaps, up to POR_GAP each.
+  for (let rodada = 0; rodada < POR_GAP; rodada++) {
+    for (const cands of porGap) {
+      const proximo = cands.find((t) => !escolhidos.has(t.id))
+      if (proximo) add(proximo)
     }
   }
-  // 3) backfill with area templates so the trail isn't empty
+  // Backfill with area templates so the trail isn't empty.
   if (escolhidos.size < 6 && perfil.areaId) {
     for (const t of templates) {
       if (t.areaId === perfil.areaId) add(t)
@@ -92,17 +109,21 @@ function gerarItens(
     }
   }
 
-  return [...escolhidos.values()].slice(0, 24).map((t) => ({
-    id: newId(),
-    templateId: t.id,
-    competenciaId: t.competenciaId,
-    tipo: t.tipo,
-    titulo: t.titulo,
-    descricao: t.descricao,
-    duracao: t.duracao,
-    recursoUrl: t.recursoUrl,
-    concluido: concluidoPorTemplate.get(t.id) ?? false,
-  }))
+  return [...escolhidos.values()].map((t) => {
+    const anterior = anteriorPorTemplate.get(t.id)
+    return {
+      id: newId(),
+      templateId: t.id,
+      competenciaId: t.competenciaId,
+      tipo: t.tipo,
+      titulo: t.titulo,
+      descricao: t.descricao,
+      duracao: t.duracao,
+      recursoUrl: t.recursoUrl,
+      concluido: anterior?.concluido ?? false,
+      concluidoEm: anterior?.concluido ? (anterior.concluidoEm ?? null) : null,
+    }
+  })
 }
 
 export function Trilha() {

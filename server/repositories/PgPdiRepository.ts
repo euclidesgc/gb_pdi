@@ -28,6 +28,9 @@ const bool = (v: unknown): boolean => Number(v ?? 0) === 1
 
 type Stmt = { sql: string; bind?: SqlBind }
 
+/** Today (yyyy-mm-dd) in Brazil, the date stamped on finished ações and trilha items. */
+const HOJE_SQL = `to_char(now() AT TIME ZONE 'America/Sao_Paulo', 'YYYY-MM-DD')`
+
 /** Link tables of a diário entry, in the order listDiario reads them. */
 const DIARIO_LINKS = [
   { table: 'diario_habilidades', col: 'habilidade_id' },
@@ -202,12 +205,14 @@ export class PgPdiRepository implements PdiRepository {
   async upsertAcao(a: Acao): Promise<void> {
     await this.db.run(
       `INSERT INTO acoes AS t
-         (id, user_id, objetivo_id, titulo, categoria, prazo, due_date, status, detalhes, ordem)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         (id, user_id, objetivo_id, titulo, categoria, prazo, due_date, status, detalhes, ordem, concluido_em)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CASE WHEN ? = 'concluido' THEN ${HOJE_SQL} END)
        ON CONFLICT(id) DO UPDATE SET
          objetivo_id = excluded.objetivo_id, titulo = excluded.titulo, categoria = excluded.categoria,
          prazo = excluded.prazo, due_date = excluded.due_date, status = excluded.status,
-         detalhes = excluded.detalhes, ordem = excluded.ordem
+         detalhes = excluded.detalhes, ordem = excluded.ordem,
+         concluido_em = CASE WHEN excluded.status = 'concluido'
+                             THEN COALESCE(t.concluido_em, excluded.concluido_em) END
        WHERE t.user_id = excluded.user_id`,
       [
         a.id,
@@ -220,15 +225,17 @@ export class PgPdiRepository implements PdiRepository {
         a.status,
         a.detalhes,
         a.ordem,
+        a.status,
       ],
     )
   }
   async updateAcaoStatus(id: string, status: AcaoStatus): Promise<void> {
-    await this.db.run('UPDATE acoes SET status = ? WHERE id = ? AND user_id = ?', [
-      status,
-      id,
-      this.userId,
-    ])
+    await this.db.run(
+      `UPDATE acoes SET status = ?,
+         concluido_em = CASE WHEN ? = 'concluido' THEN COALESCE(concluido_em, ${HOJE_SQL}) END
+       WHERE id = ? AND user_id = ?`,
+      [status, status, id, this.userId],
+    )
   }
   async deleteAcao(id: string): Promise<void> {
     await this.deleteOwned('acoes', id)
@@ -276,23 +283,26 @@ export class PgPdiRepository implements PdiRepository {
   async upsertTrilhaItem(t: TrilhaItem): Promise<void> {
     await this.db.run(
       `INSERT INTO trilha_itens AS t
-         (id, user_id, template_id, competencia_id, tipo, titulo, descricao, duracao, recurso_url, concluido)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+         (id, user_id, template_id, competencia_id, tipo, titulo, descricao, duracao, recurso_url, concluido, concluido_em)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, CASE WHEN ? = 1 THEN ${HOJE_SQL} END)
        ON CONFLICT(id) DO UPDATE SET
          template_id = excluded.template_id, competencia_id = excluded.competencia_id,
          tipo = excluded.tipo, titulo = excluded.titulo, descricao = excluded.descricao,
          duracao = excluded.duracao, recurso_url = excluded.recurso_url,
-         concluido = excluded.concluido
+         concluido = excluded.concluido,
+         concluido_em = CASE WHEN excluded.concluido = 1
+                             THEN COALESCE(t.concluido_em, excluded.concluido_em) END
        WHERE t.user_id = excluded.user_id`,
-      this.trilhaBind(t),
+      [...this.trilhaBind(t), b(t.concluido)],
     )
   }
   async setTrilhaConcluido(id: string, concluido: boolean): Promise<void> {
-    await this.db.run('UPDATE trilha_itens SET concluido = ? WHERE id = ? AND user_id = ?', [
-      b(concluido),
-      id,
-      this.userId,
-    ])
+    await this.db.run(
+      `UPDATE trilha_itens SET concluido = ?,
+         concluido_em = CASE WHEN ? = 1 THEN COALESCE(concluido_em, ${HOJE_SQL}) END
+       WHERE id = ? AND user_id = ?`,
+      [b(concluido), b(concluido), id, this.userId],
+    )
   }
   async deleteTrilhaItem(id: string): Promise<void> {
     await this.deleteOwned('trilha_itens', id)
@@ -320,15 +330,15 @@ export class PgPdiRepository implements PdiRepository {
   private trilhaInsert(t: TrilhaItem): Stmt {
     return {
       sql: `INSERT INTO trilha_itens
-              (id, user_id, template_id, competencia_id, tipo, titulo, descricao, duracao, recurso_url, concluido)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      bind: this.trilhaBind(t),
+              (id, user_id, template_id, competencia_id, tipo, titulo, descricao, duracao, recurso_url, concluido, concluido_em)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      bind: [...this.trilhaBind(t), t.concluido ? (t.concluidoEm ?? null) : null],
     }
   }
 
   // ---- Diário ----
   async listDiario(): Promise<DiarioEntry[]> {
-    const rows = await this.db.all('SELECT * FROM diario WHERE user_id = ? ORDER BY data DESC', [
+    const rows = await this.db.all('SELECT * FROM diario WHERE user_id = ? ORDER BY data DESC, created_at DESC', [
       this.userId,
     ])
     const [habs, objs, acoes, trilha] = await Promise.all(
@@ -362,36 +372,60 @@ export class PgPdiRepository implements PdiRepository {
         acaoIds: a.get(id) ?? [],
         trilhaItemIds: t.get(id) ?? [],
         habilidadeIds: h.get(id) ?? [],
+        destaque: bool(r.destaque),
       }
     })
   }
   async addDiario(e: DiarioEntry): Promise<void> {
     await this.db.tx(this.diarioInserts(e))
   }
+  async updateDiario(e: DiarioEntry): Promise<void> {
+    await this.db.tx([
+      {
+        sql: `UPDATE diario SET data = ?, texto = ?, destaque = ?, updated_at = now()
+               WHERE id = ? AND user_id = ?`,
+        bind: [e.data, e.texto, b(e.destaque ?? false), e.id, this.userId],
+      },
+      ...DIARIO_LINKS.map((l) => ({
+        sql: `DELETE FROM ${l.table}
+               WHERE diario_id = (SELECT id FROM diario WHERE id = ? AND user_id = ?)`,
+        bind: [e.id, this.userId],
+      })),
+      ...this.diarioLinkInserts(e),
+    ])
+  }
   async deleteDiario(id: string): Promise<void> {
     // The link tables cascade from diario.
     await this.deleteOwned('diario', id)
   }
   private diarioInserts(e: DiarioEntry & { objetivoId?: string | null }): Stmt[] {
+    return [
+      {
+        sql: 'INSERT INTO diario (id, user_id, data, texto, destaque) VALUES (?, ?, ?, ?, ?)',
+        bind: [e.id, this.userId, e.data, e.texto, b(e.destaque ?? false)],
+      },
+      ...this.diarioLinkInserts(e),
+    ]
+  }
+  private diarioLinkInserts(e: DiarioEntry & { objetivoId?: string | null }): Stmt[] {
     // Exports before v3 carried a single objetivoId.
     const objetivoIds = e.objetivoIds ?? (e.objetivoId ? [e.objetivoId] : [])
-    // Linked records must belong to this user; unknown ids are skipped, not errors.
+    // The entry and the linked records must belong to this user; unknown ids are
+    // skipped, not errors.
+    const mine = 'EXISTS (SELECT 1 FROM diario WHERE id = ? AND user_id = ?)'
     const owned = (table: string, col: string, ownerTable: string, ids: string[] | undefined) =>
       (ids ?? []).map((ref) => ({
         sql: `INSERT INTO ${table} (diario_id, ${col})
-                SELECT ?, id FROM ${ownerTable} WHERE id = ? AND user_id = ?
+                SELECT ?, id FROM ${ownerTable} WHERE id = ? AND user_id = ? AND ${mine}
               ON CONFLICT DO NOTHING`,
-        bind: [e.id, ref, this.userId],
+        bind: [e.id, ref, this.userId, e.id, this.userId],
       }))
     return [
-      {
-        sql: 'INSERT INTO diario (id, user_id, data, texto) VALUES (?, ?, ?, ?)',
-        bind: [e.id, this.userId, e.data, e.texto],
-      },
       ...(e.habilidadeIds ?? []).map((hid) => ({
-        sql: `INSERT INTO diario_habilidades (diario_id, habilidade_id) VALUES (?, ?)
+        sql: `INSERT INTO diario_habilidades (diario_id, habilidade_id)
+                SELECT ?, ? WHERE ${mine}
               ON CONFLICT DO NOTHING`,
-        bind: [e.id, hid],
+        bind: [e.id, hid, e.id, this.userId],
       })),
       ...owned('diario_objetivos', 'objetivo_id', 'objetivos', objetivoIds),
       ...owned('diario_acoes', 'acao_id', 'acoes', e.acaoIds),
@@ -529,9 +563,12 @@ export class PgPdiRepository implements PdiRepository {
       })),
       ...(data.acoes ?? []).map((a) => ({
         sql: `INSERT INTO acoes
-                (id, user_id, objetivo_id, titulo, categoria, prazo, due_date, status, detalhes, ordem)
-              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-        bind: [a.id, u, a.objetivoId, a.titulo, a.categoria, a.prazo, a.dueDate, a.status, a.detalhes, a.ordem],
+                (id, user_id, objetivo_id, titulo, categoria, prazo, due_date, status, detalhes, ordem, concluido_em)
+              VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        bind: [
+          a.id, u, a.objetivoId, a.titulo, a.categoria, a.prazo, a.dueDate, a.status, a.detalhes, a.ordem,
+          a.status === 'concluido' ? (a.concluidoEm ?? null) : null,
+        ],
       })),
       ...(data.forcas ?? []).map((f) => ({
         sql: `INSERT INTO forcas (id, user_id, objetivo_id, tipo, descricao, intensidade)
@@ -577,6 +614,7 @@ function rowToAcao(r: Row): Acao {
     status: str(r.status) as AcaoStatus,
     detalhes: strOrNull(r.detalhes),
     ordem: num(r.ordem),
+    concluidoEm: strOrNull(r.concluido_em),
   }
 }
 function rowToTrilhaItem(r: Row): TrilhaItem {
@@ -590,5 +628,6 @@ function rowToTrilhaItem(r: Row): TrilhaItem {
     duracao: strOrNull(r.duracao),
     recursoUrl: strOrNull(r.recurso_url),
     concluido: bool(r.concluido),
+    concluidoEm: strOrNull(r.concluido_em),
   }
 }

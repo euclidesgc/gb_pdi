@@ -99,6 +99,7 @@ export const PDI_METHODS = [
   'replaceTrilha',
   'listDiario',
   'addDiario',
+  'updateDiario',
   'deleteDiario',
   'listConquistas',
   'addConquista',

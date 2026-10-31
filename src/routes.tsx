@@ -32,6 +32,7 @@ const Comparador = lazy(() =>
 const Curriculo = lazy(() =>
   import('@/pages/app/Curriculo').then((m) => ({ default: m.Curriculo })),
 )
+const Bragdoc = lazy(() => import('@/pages/app/Bragdoc').then((m) => ({ default: m.Bragdoc })))
 const Perfil = lazy(() => import('@/pages/app/Perfil').then((m) => ({ default: m.Perfil })))
 
 const AreasAdmin = lazy(() => import('@/pages/admin/Areas').then((m) => ({ default: m.AreasAdmin })))
@@ -77,6 +78,7 @@ export const router = createBrowserRouter([
       { path: 'plano', element: <Plano /> },
       { path: 'evolucao', element: <Evolucao /> },
       { path: 'diario', element: <Diario /> },
+      { path: 'bragdoc', element: <Bragdoc /> },
       { path: 'comparador', element: <Comparador /> },
       { path: 'curriculo', element: <Curriculo /> },
       { path: 'perfil', element: <Perfil /> },

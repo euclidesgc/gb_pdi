@@ -63,6 +63,8 @@ export interface PdiRepository {
   // Diário
   listDiario(): Promise<DiarioEntry[]>
   addDiario(entry: DiarioEntry): Promise<void>
+  /** Troca data, texto e vínculos de uma entrada existente. */
+  updateDiario(entry: DiarioEntry): Promise<void>
   deleteDiario(id: string): Promise<void>
 
   // Conquistas

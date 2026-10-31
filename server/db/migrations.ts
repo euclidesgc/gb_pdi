@@ -353,6 +353,24 @@ export const MIGRATIONS: Migration[] = [
       CREATE INDEX idx_api_tokens_user ON api_tokens(user_id);
     `,
   },
+  {
+    version: 8,
+    name: 'datas_conclusao_diario',
+    sql: /* sql */ `
+      -- Data (yyyy-mm-dd) em que a ação ou o item da trilha foi concluído: o
+      -- brag document filtra as entregas por período. Itens já concluídos ficam
+      -- sem data.
+      ALTER TABLE acoes ADD COLUMN concluido_em TEXT;
+      ALTER TABLE trilha_itens ADD COLUMN concluido_em TEXT;
+
+      -- Ordena as entradas de um mesmo dia e registra a última edição.
+      ALTER TABLE diario ADD COLUMN created_at TIMESTAMPTZ NOT NULL DEFAULT now();
+      ALTER TABLE diario ADD COLUMN updated_at TIMESTAMPTZ;
+      -- Entrada marcada como destaque: vai para o topo do brag document.
+      ALTER TABLE diario ADD COLUMN destaque INTEGER NOT NULL DEFAULT 0;
+      CREATE INDEX idx_diario_user_data ON diario(user_id, data);
+    `,
+  },
 ]
 
 /** Arbitrary key for the advisory lock that serializes migrations across replicas. */
